@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ece5da">
+  <meta name="robots" content="noindex,nofollow">
+  <title>给璐的生日礼物</title>
+  <link rel="icon" href="assets/brand.svg" type="image/svg+xml">
+  <script>
+    // 手机直接打开礼物本身，不再套一层外框
+    if (matchMedia('(max-width: 520px) and (pointer: coarse)').matches) location.replace('gift.html' + location.hash);
+  </script>
+  <style>
+    @font-face { font-family:"Lu Serif"; src:url("assets/fonts/lu-serif.woff2") format("woff2"); font-weight:400 700; font-display:swap; }
+    :root { --ink:#3a2e26; --ink-2:#76675a; --accent:#cf5a2a; --serif:"Lu Serif","Songti SC","Noto Serif SC","STSong",serif; --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; --latin:"Palatino","Palatino Linotype","Book Antiqua",Georgia,serif; }
+    * { box-sizing:border-box; }
+    html,body { height:100%; }
+    body { margin:0; overflow:hidden; color:var(--ink); font-family:var(--sans); background:#ece5da; -webkit-font-smoothing:antialiased; isolation:isolate; }
+    .outer-light { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
+      background:radial-gradient(55% 60% at 78% 70%,rgba(226,182,128,.3),transparent 70%),radial-gradient(45% 50% at 8% 18%,rgba(214,226,206,.45),transparent 70%),radial-gradient(40% 40% at 60% 10%,rgba(255,255,255,.55),transparent 70%); }
+    .outer-light::after { content:""; position:absolute; inset:0; opacity:.6; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .18 0 0 0 .55 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .outer-light i { position:absolute; border-radius:50%; border:1px solid rgba(255,253,246,.75); background:linear-gradient(140deg,rgba(255,255,255,.3),rgba(255,255,255,.04) 42%,rgba(205,170,120,.13) 76%,rgba(255,255,255,.5)); box-shadow:inset 0 4px 26px rgba(255,253,245,.5),0 30px 60px rgba(120,90,50,.06); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); animation:drift 30s ease-in-out infinite alternate; }
+    .outer-light i:nth-child(1) { width:95vw; height:44vw; left:38%; top:-30%; rotate:-28deg; }
+    .outer-light i:nth-child(2) { width:110vw; height:42vw; left:-62%; top:46%; rotate:-24deg; opacity:.75; animation-delay:-12s; }
+    .outer-light i:nth-child(3) { width:80vw; height:36vw; left:60%; top:70%; rotate:-30deg; opacity:.6; animation-delay:-20s; }
+    @keyframes drift { to { translate:24px -16px; } }
+    body.is-hidden .outer-light i { animation-play-state:paused; }
+    .showcase { --scale:1; display:grid; min-width:0; grid-template-columns:minmax(240px,360px) auto; align-items:center; justify-content:center; gap:clamp(48px,8vw,120px); height:100%; padding:30px 48px; }
+    .intro { padding-bottom:20px; }
+    .eyebrow { margin:0; font:italic 400 15px/1 var(--latin); letter-spacing:.08em; color:var(--accent); }
+    h1 { margin:26px 0 0; font:500 52px/1.32 var(--serif); letter-spacing:.02em; }
+    h1 em { font-style:normal; color:var(--accent); }
+    .lede { margin:22px 0 0; font:400 15px/1.95 var(--sans); letter-spacing:.04em; color:var(--ink-2); }
+    .meta { display:flex; align-items:center; gap:14px; margin:38px 0 0; font:italic 400 15px/1 var(--latin); letter-spacing:.08em; color:var(--ink-2); }
+    .meta::before { content:""; width:30px; height:1px; background:currentColor; opacity:.4; }
+    .note { margin:14px 0 0; font:400 12px/1.8 var(--sans); letter-spacing:.06em; color:#9a8b7c; }
+    .device-space { width:calc(421px * var(--scale)); height:calc(880px * var(--scale)); }
+    .phone { position:relative; width:421px; height:880px; padding:12px; border-radius:64px; transform:scale(var(--scale)); transform-origin:top left;
+      background:linear-gradient(120deg,#5a5751,#c9c3b8 22%,#6d6a63 52%,#a8a297 78%,#4a4844); border:1px solid #807b72;
+      box-shadow:0 0 0 1px #b9b2a6,0 0 0 3px #8f8a81,inset 2px 3px 1px rgba(255,250,240,.9),inset -2px -2px 2px #2a2b28,0 50px 90px -30px rgba(70,50,30,.45),0 12px 26px rgba(70,50,30,.12); }
+    .phone::before,.phone::after,.side { position:absolute; content:""; width:3px; border-radius:3px; background:linear-gradient(90deg,#6b6861,#c2bcb0,#77746c); }
+    .phone::before { left:-5px; top:168px; height:30px; }
+    .phone::after { right:-5px; top:238px; height:84px; }
+    .side.up { left:-5px; top:222px; height:56px; } .side.down { left:-5px; top:290px; height:56px; }
+    .screen { position:relative; width:395px; height:854px; overflow:hidden; border-radius:52px; background:#f6efe3; box-shadow:0 0 0 5px #121311; isolation:isolate; }
+    .island { position:absolute; z-index:3; top:11px; left:50%; translate:-50% 0; width:122px; height:35px; border-radius:24px; background:#0e0f0d; }
+    .island::after { content:""; position:absolute; right:12px; top:12px; width:10px; height:10px; border-radius:50%; background:radial-gradient(circle at 35% 32%,#2a3a52,#070a0f 63%); }
+    .status { position:absolute; inset:0 0 auto; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 30px 2px 34px; color:#2a2622; pointer-events:none; z-index:2; }
+    .time { font:600 15px/1 -apple-system,"SF Pro Text","Segoe UI",sans-serif; letter-spacing:-.2px; }
+    .icons { display:flex; align-items:center; gap:6px; }
+    .signal { display:flex; align-items:flex-end; gap:2px; height:11px; } .signal i { width:3px; border-radius:1px; background:currentColor; }
+    .signal i:nth-child(1){height:4px}.signal i:nth-child(2){height:6px}.signal i:nth-child(3){height:8px}.signal i:nth-child(4){height:11px}
+    .battery { position:relative; width:24px; height:11.5px; padding:1.5px; border:1px solid rgba(42,38,34,.45); border-radius:3.5px; }
+    .battery::before { content:""; display:block; width:80%; height:100%; border-radius:1.5px; background:currentColor; }
+    .battery::after { content:""; position:absolute; right:-3.5px; top:3px; width:2px; height:4px; border-radius:0 1px 1px 0; background:rgba(42,38,34,.45); }
+    iframe { position:absolute; top:58px; left:0; width:100%; height:calc(100% - 82px); border:0; background:#f6efe3; }
+    .home { position:absolute; z-index:2; bottom:8px; left:50%; translate:-50% 0; width:136px; height:5px; border-radius:3px; background:#2c2722; pointer-events:none; }
+    @media (max-width:900px) { .intro { display:none; } .showcase { grid-template-columns:auto; } }
+    @media (prefers-reduced-motion:reduce) { .outer-light i { animation:none; } }
+  </style>
+</head>
+<body>
+  <div class="outer-light" aria-hidden="true"><i></i><i></i><i></i></div>
+  <main class="showcase">
+    <section class="intro">
+      <p class="eyebrow">A little birthday letter</p>
+      <h1>快乐，<br>在这里<em>拆开</em>。</h1>
+      <p class="lede">一封信，两只小猫。<br>把二十岁的祝福，悄悄装进口袋。</p>
+      <p class="meta">10.23 · For Lu · Twenty</p>
+      <p class="note">全程无声 · 在手机上打开更完整</p>
+    </section>
+    <div class="device-space">
+      <div class="phone" aria-label="iPhone 外观预览">
+        <span class="side up" aria-hidden="true"></span><span class="side down" aria-hidden="true"></span>
+        <div class="screen">
+          <div class="status" aria-hidden="true"><span class="time">9:41</span><span class="icons"><span class="signal"><i></i><i></i><i></i><i></i></span><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.2 5.6 8.6a3.4 3.4 0 0 1 4.8 0Zm-4-4.3L2.6 5.4a7.6 7.6 0 0 1 10.8 0L12 6.9a5.6 5.6 0 0 0-8 0ZM.6 3.4-.4 2.3a11.3 11.3 0 0 1 16.8 0l-1 1.1a9.8 9.8 0 0 0-14.8 0Z" fill="currentColor"/></svg><span class="battery"></span></span></div>
+          <div class="island" aria-hidden="true"></div>
+          <iframe src="gift.html" title="给璐的无声互动生日礼物"></iframe>
+          <span class="home" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    function fitPhone(){ document.querySelector('.showcase').style.setProperty('--scale',Math.min(1,Math.max(.3,Math.min((innerHeight-64)/880,(innerWidth-40)/421)))); }
+    addEventListener('resize',fitPhone); fitPhone();
+    document.addEventListener('visibilitychange',()=>document.body.classList.toggle('is-hidden',document.hidden));
+  </script>
+</body>
+</html>

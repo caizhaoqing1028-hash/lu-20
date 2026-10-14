@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6efe3">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="滑开一封信，点亮二十岁。给璐的无声互动生日礼物。">
+  <title>给璐的生日礼物</title>
+  <link rel="icon" href="assets/brand.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="gift.css">
+</head>
+<body class="entry-active">
+  <div class="paper-light" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <!-- 1. 滑动拆信 -->
+  <section id="entrance" class="entrance" aria-labelledby="entranceTitle">
+    <header class="topbar">
+      <span class="brand"><img src="assets/brand.svg" alt="" width="26" height="26">小猫生日邮局</span>
+      <time class="topbar-date" datetime="2026-10-23">2026.10.23</time>
+    </header>
+    <div class="entrance-copy">
+      <p class="kicker"><span>To Lu</span></p>
+      <h1 id="entranceTitle">一封给<em>璐</em>的信。</h1>
+      <p class="entrance-note">小猫把祝福，悄悄装进了信里。</p>
+    </div>
+    <div class="envelope-scene" aria-hidden="true">
+      <div class="envelope">
+        <div class="envelope-shadow"></div>
+        <img class="env env-open" src="assets/envelope-open.webp" alt="" width="1100" height="869">
+        <div id="envelopeCard" class="envelope-card"></div>
+        <img class="env env-open env-front" src="assets/envelope-open.webp" alt="" width="1100" height="869">
+        <img class="env env-closed" src="assets/envelope.webp" alt="" width="1100" height="870" fetchpriority="high">
+      </div>
+    </div>
+    <div class="entrance-actions">
+      <div class="dock glass">
+        <div id="slider" class="switch" role="slider" tabindex="0" aria-label="向右滑，拆开惊喜" aria-describedby="slideHint" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="尚未拆开，向右滑动；键盘可按 End 完成">
+          <span class="switch-track" aria-hidden="true">
+            <span class="switch-fill"></span>
+            <span class="dock-copy"><span id="slideTitle" class="dock-title">拆开惊喜</span><span id="slideHint" class="dock-hint">向右滑动白色圆点</span></span>
+            <span class="switch-knob"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="knob-check" d="m6 12.5 4 4 8-9"/></svg></span>
+          </span>
+        </div>
+      </div>
+      <button id="skipEntrance" class="link-button" type="button">直接看礼物<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"/></svg></button>
+      <p id="entranceStatus" class="sr-only" role="status"></p>
+    </div>
+  </section>
+
+  <!-- 2. 小猫生日明信片 -->
+  <div id="gift" class="gift" hidden inert>
+    <header class="topbar">
+      <span class="brand"><img src="assets/brand.svg" alt="" width="26" height="26">小猫生日邮局</span>
+      <button id="reopenEntrance" class="link-button quiet top-link" type="button">重新拆一次信</button>
+    </header>
+    <main class="gift-main">
+      <section class="greeting" aria-labelledby="giftTitle">
+        <p class="dateline"><time datetime="2026-10-23">2026 · 10 · 23</time></p>
+        <h1 id="giftTitle" tabindex="-1"><span class="name">璐，</span><span class="wish"><b>20</b> 岁快乐。</span></h1>
+        <p class="motto">小猫认真上班，你负责快乐。</p>
+        <div class="postcard-wrap" id="postcardWrap">
+          <div id="postcard" class="postcard" data-step="0">
+            <img class="card-paper" src="assets/postcard.webp" alt="写着 Happy Birthday 的纸质明信片，邮戳日期为 2026 年 10 月 23 日" width="1500" height="975" fetchpriority="high">
+            <button class="cat orange" type="button" aria-label="摸摸橘色小猫">
+              <img class="eyes-open" src="assets/orange.webp" alt="" width="640" height="704" draggable="false">
+              <img class="eyes-closed" src="assets/orange-blink.webp" alt="" width="640" height="704" draggable="false">
+            </button>
+            <button class="cat white" type="button" aria-label="摸摸白色小猫">
+              <img class="eyes-open" src="assets/white.webp" alt="" width="640" height="705" draggable="false">
+              <img class="eyes-closed" src="assets/white-blink.webp" alt="" width="640" height="705" draggable="false">
+            </button>
+            <img class="gift-box" src="assets/gift.webp" alt="" width="560" height="560">
+            <img class="cake" src="assets/cake.webp" alt="" width="640" height="480">
+            <img class="cake lit" src="assets/cake-lit.webp" alt="" width="640" height="480">
+          </div>
+        </div>
+        <p class="pet-hint" id="petHint" aria-live="polite">摸摸小猫，它们会很开心。</p>
+      </section>
+
+      <section class="step-panel" aria-label="生日惊喜步骤">
+        <ol class="stepper" aria-label="生日惊喜进度">
+          <li class="current" aria-current="step"><i></i><span>收下祝福</span></li>
+          <li><i></i><span>点亮蜡烛</span></li>
+          <li><i></i><span>互动惊喜</span></li>
+        </ol>
+        <div class="step-text" aria-live="polite" aria-atomic="true">
+          <h2 id="stepTitle">生日快递，待签收。</h2>
+          <p id="stepDescription" hidden></p>
+        </div>
+        <button id="nextButton" class="primary" type="button"><span id="nextLabel">先收下小猫的祝福</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"/></svg></button>
+      </section>
+
+      <div class="extras">
+        <button id="confettiButton" class="pill glass" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M4 20.5 8.2 8.8l7 7z"/><path d="M12.5 4.5v1.8M18.6 5.4l-1.3 1.3M19.5 11.5h-1.8M14.5 8.5c1-1.6 2.6-2.2 4-1.7"/><circle class="dot" cx="16.8" cy="3.6" r="1"/><circle class="dot" cx="20.6" cy="8.6" r="1"/></svg>放一筒礼花</button>
+        <button id="letterButton" class="pill glass" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12.5" rx="2"/><path d="m4.5 7.5 7.5 6 7.5-6"/></svg>还有一封小信</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. 四段全屏互动舞台 -->
+  <dialog id="experience" class="experience" aria-labelledby="stageTitle" data-scene="0">
+    <div class="stage-bg" aria-hidden="true"><i class="bg-joy"></i><i class="bg-wish"></i><i class="bg-night"></i><i class="bg-dawn"></i></div>
+    <canvas id="depthCanvas" class="depth-canvas" aria-hidden="true" hidden></canvas>
+    <div class="stage">
+      <div class="stage-head">
+        <span class="brand small"><img src="assets/brand.svg" alt="" width="22" height="22">给璐的生日惊喜</span>
+        <button id="closeExperience" class="icon-button glass" type="button" aria-label="退出，回到明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>
+      </div>
+      <div class="stage-scroll">
+        <div class="stage-heading">
+          <p id="stageChapter" class="stage-chapter">第一份 · 好心情</p>
+          <p id="stageDisplay" class="stage-display" aria-hidden="true">Joy<span>.</span></p>
+          <h2 id="stageTitle" tabindex="-1">今天，快乐多一点。</h2>
+          <p id="stageInstruction" class="stage-instruction">把橙色圆点，慢慢拖到曲线的另一端。</p>
+        </div>
+
+        <section id="joyScene" class="scene joy-scene" aria-label="好心情曲线">
+          <div class="joy-value" aria-hidden="true"><span id="joyValue">+0</span><span class="percent">%</span></div>
+          <div class="joy-graph" id="joyGraph">
+            <svg viewBox="0 0 340 210" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="joyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f26a2e" stop-opacity=".26"/><stop offset="1" stop-color="#f26a2e" stop-opacity="0"/></linearGradient></defs>
+              <path class="graph-grid" d="M20 40H325M20 75H325M20 110H325M20 145H325M81 12V190M142 12V190M203 12V190M264 12V190"/>
+              <path class="graph-axis" d="M20 190H325"/>
+              <path class="graph-guide" d="M20 60H325"/>
+              <path id="joyGhost" class="joy-ghost" d="M25 175"/>
+              <path id="joyArea" class="joy-area" d="M25 175"/>
+              <path id="joyCurve" class="joy-curve" d="M25 175"/>
+            </svg>
+            <span class="graph-target" aria-hidden="true">+20%</span>
+            <button id="joyDot" class="joy-dot" type="button" role="slider" aria-label="增加好心情，向右拖动橙色圆点" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></button>
+            <span class="graph-label start" aria-hidden="true">今天</span><span class="graph-label end" aria-hidden="true">更开心一点</span>
+          </div>
+          <p class="scene-note" id="joyCaption">一点点积攒，也会有很多快乐。</p>
+        </section>
+
+        <section id="wishScene" class="scene wish-scene" aria-label="转动祝福环并选择祝福" hidden>
+          <div class="wish-orbit" id="wishOrbit" aria-label="可拖动的祝福圆环">
+            <span class="orbit-ring" aria-hidden="true"></span>
+            <span class="orbit-core" aria-hidden="true"><b>20</b><small>许个愿吧</small></span>
+            <button class="wish-word" type="button" data-wish="快乐">快乐</button>
+            <button class="wish-word" type="button" data-wish="勇气">勇气</button>
+            <button class="wish-word" type="button" data-wish="自由">自由</button>
+            <button class="wish-word" type="button" data-wish="好运">好运</button>
+            <button class="wish-word" type="button" data-wish="小猫">小猫</button>
+            <button class="wish-word" type="button" data-wish="热爱">热爱</button>
+          </div>
+          <div id="wishReveal" class="wish-reveal" hidden>
+            <div class="wish-art">
+              <span class="sun" aria-hidden="true"></span>
+              <img class="wish-orange" src="assets/orange.webp" alt="橘色小猫" width="640" height="704">
+              <img class="wish-white" src="assets/white.webp" alt="白色小猫" width="640" height="705">
+              <img class="wish-cake" src="assets/cake.webp" alt="生日蛋糕" width="640" height="480">
+            </div>
+            <h3>璐，惊喜正在靠近。</h3>
+            <p id="chosenWish">把喜欢的事，放进新的这一岁。</p>
+          </div>
+          <div class="dot-reveal" id="dotReveal" aria-hidden="true" hidden></div>
+        </section>
+
+        <section id="starsScene" class="scene stars-scene" aria-label="点亮三颗星，汇成二十岁" hidden>
+          <canvas id="starCanvas" aria-hidden="true"></canvas>
+          <div class="star-field">
+            <button class="main-star star-one" type="button" aria-label="点亮第一颗主星" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z"/></svg></button>
+            <button class="main-star star-two" type="button" aria-label="点亮第二颗主星" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z"/></svg></button>
+            <button class="main-star star-three" type="button" aria-label="点亮第三颗主星" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z"/></svg></button>
+          </div>
+          <span class="star-fallback" id="starFallback" aria-hidden="true" hidden>20</span>
+          <div class="star-copy">
+            <p class="star-count" id="starCount" aria-live="polite">还有 3 颗星，等你点亮。</p>
+            <p class="star-blessing" id="starBlessing">愿你有自己的节奏，<br>也有勇敢做梦的底气。</p>
+          </div>
+        </section>
+
+        <section id="finalScene" class="scene final-scene" aria-label="小猫送来最后一封信" hidden>
+          <div class="final-stage">
+            <div class="final-card" id="finalCard">
+              <img class="final-paper" src="assets/postcard.webp" alt="小猫送来的生日明信片" width="1500" height="975">
+              <button class="final-cat final-orange" type="button" aria-label="摸摸贺卡上的橘猫"><img class="eyes-open" src="assets/orange.webp" alt="" width="640" height="704" draggable="false"><img class="eyes-closed" src="assets/orange-blink.webp" alt="" width="640" height="704" draggable="false"></button>
+              <button class="final-cat final-white" type="button" aria-label="摸摸贺卡上的白猫"><img class="eyes-open" src="assets/white.webp" alt="" width="640" height="705" draggable="false"><img class="eyes-closed" src="assets/white-blink.webp" alt="" width="640" height="705" draggable="false"></button>
+              <img class="final-cake" src="assets/cake-lit.webp" alt="点亮蜡烛的生日蛋糕" width="640" height="480">
+            </div>
+          </div>
+          <p id="finalCatMessage" class="final-cat-message" aria-live="polite">摸摸小猫，收下最后一份祝福。</p>
+          <h3 class="final-title">璐，<b>20</b> 岁生日快乐。</h3>
+          <p class="final-blessing">愿你一直被温柔对待，<br>也一直勇敢地喜欢自己。</p>
+          <button id="restartExperience" class="link-button quiet" type="button">重新体验</button>
+        </section>
+      </div>
+      <p id="stageStatus" class="stage-status" role="status" aria-live="polite">等你把快乐带过来。</p>
+      <nav class="stage-controls glass" aria-label="互动场景控制">
+        <button id="stageBack" class="control-back" type="button" aria-label="返回明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6m5-5-5 5 5 5"/></svg></button>
+        <div class="stage-position"><span id="stageProgress" class="stage-progress">1 / 4</span><span class="stage-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+        <button id="stageNext" class="control-next waiting" type="button" aria-disabled="true"><span id="stageNextLabel">继续</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"/></svg></button>
+      </nav>
+    </div>
+  </dialog>
+
+  <!-- 4. 最后一封信 -->
+  <dialog id="letter" class="letter" aria-labelledby="letterTitle">
+    <div class="letter-sheet">
+      <div class="letter-head">
+        <h2 id="letterTitle">给璐的一封小信</h2>
+        <button class="icon-button glass" id="closeLetter" type="button" aria-label="关闭生日信"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>
+      </div>
+      <div id="letterBody" class="letter-body" role="region" aria-label="生日信正文，可上下滚动阅读" tabindex="0">
+        <svg class="postmark" viewBox="0 0 120 80" aria-hidden="true"><circle cx="40" cy="40" r="31"/><circle cx="40" cy="40" r="26" class="thin"/><path class="wave" d="M76 26c6-4 12 4 18 0s12-4 18 0M76 40c6-4 12 4 18 0s12-4 18 0M76 54c6-4 12 4 18 0s12-4 18 0"/><text x="40" y="37">10.23</text><text x="40" y="52">2026</text></svg>
+        <p class="salutation">璐：</p>
+        <p>生日快乐，20 岁快乐！</p>
+        <p>让这几只小猫替我把祝福送过来，希望你打开的时候，能多一点好心情。</p>
+        <p>新的一岁，愿你遇到喜欢的事，也有勇气慢慢靠近它。愿你忙的时候有收获，休息的时候没有负担；有很多值得笑出声的小事，也有被认真听见的时刻。</p>
+        <p>可以走快一点，也可以慢一点。按自己喜欢的节奏过日子，就很好。</p>
+        <p>很高兴能和你成为朋友。以后的日子，也一起收集更多好玩的事吧。</p>
+        <p>今天就安心做寿星，蛋糕、祝福和快乐，都归你。</p>
+        <p class="signature">来自一个熟悉的朋友<br>2026 年 10 月 23 日</p>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast glass" role="status" aria-live="polite"></div>
+  <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+  <script src="gift.js"></script>
+</body>
+</html>
