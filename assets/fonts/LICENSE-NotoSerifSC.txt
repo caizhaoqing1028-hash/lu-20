@@ -1,4 +1,4 @@
-lu-serif.woff2 是 Noto Serif SC 的子集，仅包含本页面用到的字。
+lu-serif.woff2 是 Noto Serif SC 的子集，lu-sans.woff2 是 Noto Sans SC 的子集，仅包含本页面用到的字。
 
 © 2017-2023 Adobe (http://www.adobe.com/).
 

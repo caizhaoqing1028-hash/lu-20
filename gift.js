@@ -5,7 +5,7 @@ const body = document.body;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-const LATIN = 'Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif';
+const LATIN = '-apple-system, "SF Pro Display", "PingFang SC", "Lu Sans", "Helvetica Neue", sans-serif';
 
 /* ---------- 动画管理：页面隐藏、离开舞台或读信时暂停 ---------- */
 let pageSuspended = false;
@@ -94,7 +94,7 @@ async function openGift() {
   const gen = ++openGen; opening = true; openSize = [innerWidth, innerHeight]; entrance.setAttribute('aria-busy', 'true');
   const alive = () => opening && gen === openGen;
 
-  if (!await run('open', knob, [{scale: '1'}, {scale: '1.08 .93', offset: .35}, {scale: '1'}], {duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)'}) || !alive()) return;
+  if (!await run('open', knob, [{scale: '1'}, {scale: '1.08 .93', offset: .35}, {scale: '1'}], {duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)'}) || !alive()) return;
 
   envelopeCard.appendChild(postcard); entrance.classList.add('opening');
   for (const el of entrance.querySelectorAll('.entrance-copy,.entrance-actions,.entrance>.topbar')) run('open', el, [{opacity: 1, translate: '0 0'}, {opacity: 0, translate: '0 -10px'}], {duration: 460, easing: 'ease'});
@@ -104,7 +104,7 @@ async function openGift() {
     {opacity: 0, transform: 'translateY(16%) rotate(5deg) scale(.82)'},
     {opacity: 1, offset: .3},
     {opacity: 1, transform: 'translateY(-54%) rotate(0deg) scale(1)'}
-  ], {duration: 800, delay: 180, easing: 'cubic-bezier(.2,.7,.2,1)'});
+  ], {duration: 720, delay: 120, easing: 'cubic-bezier(.2,.7,.2,1)'});
   if (!lifted || !alive()) return;
 
   // 同一张明信片从信封移动到礼物页的位置
@@ -114,7 +114,7 @@ async function openGift() {
   const to = postcard.getBoundingClientRect(), toW = postcard.offsetWidth;
   if (!fromW || !toW) { finishEntrance(); return; }
   const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
-  const flight = run('open', postcardWrap, [{transform: `translate(${dx}px,${dy}px) scale(${fromW / toW})`}, {transform: 'none'}], {duration: 880, easing: 'cubic-bezier(.22,.8,.2,1)'});
+  const flight = run('open', postcardWrap, [{transform: `translate(${dx}px,${dy}px) scale(${fromW / toW})`}, {transform: 'none'}], {duration: 760, easing: 'cubic-bezier(.22,.8,.2,1)'});
   [...gift.querySelectorAll('.topbar,.greeting>:not(.postcard-wrap),.step-panel,.extras,.reopen')].forEach((el, i) =>
     run('open', el, [{opacity: 0, translate: '0 10px'}, {opacity: 1, translate: '0 0'}], {duration: 800, delay: 260 + i * 60, easing: 'cubic-bezier(.2,.65,.3,1)'}));
   run('open', entrance, [{opacity: 1}, {opacity: 0}], {duration: 460, easing: 'ease'});
@@ -171,7 +171,7 @@ function toast(message) { clearTimeout(toastTimer); $('toast').textContent = mes
 function confetti() {
   clearTimeout(confettiTimer); const layer = $('confettiLayer'); layer.replaceChildren();
   if (reduced.matches) return;
-  const colors = ['#f0662a', '#f6a073', '#88a27c', '#f2d395', '#e9a3a0', '#fbf5ea'];
+  const colors = ['#ff6a2b', '#ff4d6d', '#ffb15e', '#7fa275', '#f5d38f', '#ffffff'];
   for (let i = 0; i < 46; i++) {
     const el = document.createElement('span'); el.className = 'confetti' + (i % 4 === 0 ? ' round' : '');
     el.style.left = Math.random() * 100 + '%'; el.style.background = colors[i % colors.length];
@@ -461,7 +461,7 @@ function buildGlyph() {
   if (glyph || !sctx) return glyph;
   try {
     const W = 420, H = 280, c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `italic 700 250px ${LATIN}`; g.fillText('20', W / 2, H / 2 + 6);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `800 236px ${LATIN}`; g.fillText('20', W / 2, H / 2 + 6);
     const data = g.getImageData(0, 0, W, H).data, rand = seeded(20061023), pts = [];
     for (let y = 2; y < H; y += 4) for (let x = 2; x < W; x += 4) if (data[(y * W + x) * 4 + 3] > 140) pts.push([x + (rand() - .5) * 2.4, y + (rand() - .5) * 2.4]);
     if (pts.length < 50) return null;
@@ -585,7 +585,7 @@ function drawDepth() {
     c.strokeStyle = i % 4 === 0 ? `rgba(255,128,70,${fade * .65})` : `rgba(242,214,160,${fade * .32})`; c.lineWidth = .8;
     c.strokeRect(-size, -size * 1.3, size * 2, size * 2.6); c.restore();
   }
-  c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `italic 400 ${Math.round(110 + t * 40)}px ${LATIN}`;
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${Math.round(110 + t * 40)}px ${LATIN}`;
   c.lineWidth = .8; c.strokeStyle = `rgba(246,224,180,${fade * .55})`; c.strokeText('20', 0, 0); c.restore();
 }
 const depthLoop = makeLoop(dt => {

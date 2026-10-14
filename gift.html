@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f6efe3">
+  <meta name="theme-color" content="#fbf9f6">
   <meta name="robots" content="noindex,nofollow">
   <meta name="description" content="滑开一封信，点亮二十岁。给璐的无声互动生日礼物。">
   <title>给璐的生日礼物</title>
@@ -21,7 +21,7 @@
     </header>
     <div class="entrance-copy">
       <p class="kicker"><span>To Lu</span></p>
-      <h1 id="entranceTitle">一封给<em>璐</em>的信。</h1>
+      <h1 id="entranceTitle">一封给<em class="grad">璐</em>的信。</h1>
       <p class="entrance-note">小猫把祝福，悄悄装进了信里。</p>
     </div>
     <div class="envelope-scene" aria-hidden="true">
@@ -56,8 +56,7 @@
     </header>
     <main class="gift-main">
       <section class="greeting" aria-labelledby="giftTitle">
-        <p class="dateline"><time datetime="2026-10-23">2026 · 10 · 23</time></p>
-        <h1 id="giftTitle" tabindex="-1"><span class="name">璐，</span><span class="wish"><b>20</b> 岁快乐。</span></h1>
+        <h1 id="giftTitle" tabindex="-1"><span class="name">璐，</span><span class="wish"><b class="grad">20</b> 岁快乐。</span></h1>
         <p class="motto">小猫认真上班，你负责快乐。</p>
         <div class="postcard-wrap" id="postcardWrap">
           <div id="postcard" class="postcard" data-step="0">
@@ -182,14 +181,14 @@
             </div>
           </div>
           <p id="finalCatMessage" class="final-cat-message" aria-live="polite">摸摸小猫，收下最后一份祝福。</p>
-          <h3 class="final-title">璐，<b>20</b> 岁生日快乐。</h3>
+          <h3 class="final-title">璐，<b class="grad">20</b> 岁生日快乐。</h3>
           <p class="final-blessing">愿你一直被温柔对待，<br>也一直勇敢地喜欢自己。</p>
           <button id="restartExperience" class="link-button quiet" type="button">重新体验</button>
         </section>
       </div>
       <p id="stageStatus" class="stage-status" role="status" aria-live="polite">等你把快乐带过来。</p>
-      <nav class="stage-controls glass" aria-label="互动场景控制">
-        <button id="stageBack" class="control-back" type="button" aria-label="返回明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6m5-5-5 5 5 5"/></svg></button>
+      <nav class="stage-controls" aria-label="互动场景控制">
+        <button id="stageBack" class="control-back glass" type="button" aria-label="返回明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6m5-5-5 5 5 5"/></svg></button>
         <div class="stage-position"><span id="stageProgress" class="stage-progress">1 / 4</span><span class="stage-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
         <button id="stageNext" class="control-next waiting" type="button" aria-disabled="true"><span id="stageNextLabel">继续</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"/></svg></button>
       </nav>
