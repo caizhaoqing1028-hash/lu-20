@@ -28,6 +28,8 @@
       <div class="envelope">
         <div class="envelope-shadow"></div>
         <img class="env env-open" src="assets/envelope-open.webp" alt="" width="1100" height="869">
+        <div class="envelope-extra extra-photo"><img src="assets/orange.webp" alt="" width="640" height="704"></div>
+        <div class="envelope-extra extra-ticket"><b>20</b><span>10.23</span></div>
         <div id="envelopeCard" class="envelope-card"></div>
         <img class="env env-open env-front" src="assets/envelope-open.webp" alt="" width="1100" height="869">
         <img class="env env-closed" src="assets/envelope.webp" alt="" width="1100" height="870" fetchpriority="high">
@@ -52,7 +54,7 @@
   <div id="gift" class="gift" hidden inert>
     <header class="topbar">
       <span class="brand"><img src="assets/brand.svg" alt="" width="26" height="26">小猫生日邮局</span>
-      <button id="reopenEntrance" class="link-button quiet top-link" type="button">重新拆一次信</button>
+      <span class="topbar-actions"><button id="reopenEntrance" class="link-button quiet top-link" type="button">重新拆一次信</button><button class="music-toggle glass" type="button" aria-pressed="true" aria-label="背景音乐：开"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button></span>
     </header>
     <main class="gift-main">
       <section class="greeting" aria-labelledby="giftTitle">
@@ -104,7 +106,7 @@
     <div class="stage">
       <div class="stage-head">
         <span class="brand small"><img src="assets/brand.svg" alt="" width="22" height="22">给璐的生日惊喜</span>
-        <button id="closeExperience" class="icon-button glass" type="button" aria-label="退出，回到明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>
+        <span class="topbar-actions"><button class="music-toggle glass" type="button" aria-pressed="true" aria-label="背景音乐：开"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button><button id="closeExperience" class="icon-button glass" type="button" aria-label="退出，回到明信片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button></span>
       </div>
       <div class="stage-scroll">
         <div class="stage-heading">
@@ -135,6 +137,13 @@
 
         <section id="wishScene" class="scene wish-scene" aria-label="转动祝福环并选择祝福" hidden>
           <div class="wish-orbit" id="wishOrbit" aria-label="可拖动的祝福圆环">
+<svg class="orbit-dial" viewBox="0 0 200 200" aria-hidden="true">
+              <defs><path id="wishTextRing" d="M100 33a67 67 0 1 1 0 134a67 67 0 1 1 0-134"/></defs>
+              <g class="dial-ticks"><path d="M100.00 9.50L100.00 3.00M108.11 7.35L108.45 3.37M116.15 8.41L116.84 4.47M124.07 10.17L125.11 6.31M131.81 12.61L133.18 8.85M139.30 15.71L140.99 12.09M145.25 21.62L148.50 16.00M153.34 23.82L155.64 20.54M159.78 28.76L162.35 25.69M165.76 34.24L168.59 31.41M171.24 40.22L174.31 37.65M176.18 46.66L179.46 44.36M178.38 54.75L184.00 51.50M184.29 60.70L187.91 59.01M187.39 68.19L191.15 66.82M189.83 75.93L193.69 74.89M191.59 83.85L195.53 83.16M192.65 91.89L196.63 91.55M190.50 100.00L197.00 100.00M192.65 108.11L196.63 108.45M191.59 116.15L195.53 116.84M189.83 124.07L193.69 125.11M187.39 131.81L191.15 133.18M184.29 139.30L187.91 140.99M178.38 145.25L184.00 148.50M176.18 153.34L179.46 155.64M171.24 159.78L174.31 162.35M165.76 165.76L168.59 168.59M159.78 171.24L162.35 174.31M153.34 176.18L155.64 179.46M145.25 178.38L148.50 184.00M139.30 184.29L140.99 187.91M131.81 187.39L133.18 191.15M124.07 189.83L125.11 193.69M116.15 191.59L116.84 195.53M108.11 192.65L108.45 196.63M100.00 190.50L100.00 197.00M91.89 192.65L91.55 196.63M83.85 191.59L83.16 195.53M75.93 189.83L74.89 193.69M68.19 187.39L66.82 191.15M60.70 184.29L59.01 187.91M54.75 178.38L51.50 184.00M46.66 176.18L44.36 179.46M40.22 171.24L37.65 174.31M34.24 165.76L31.41 168.59M28.76 159.78L25.69 162.35M23.82 153.34L20.54 155.64M21.62 145.25L16.00 148.50M15.71 139.30L12.09 140.99M12.61 131.81L8.85 133.18M10.17 124.07L6.31 125.11M8.41 116.15L4.47 116.84M7.35 108.11L3.37 108.45M9.50 100.00L3.00 100.00M7.35 91.89L3.37 91.55M8.41 83.85L4.47 83.16M10.17 75.93L6.31 74.89M12.61 68.19L8.85 66.82M15.71 60.70L12.09 59.01M21.62 54.75L16.00 51.50M23.82 46.66L20.54 44.36M28.76 40.22L25.69 37.65M34.24 34.24L31.41 31.41M40.22 28.76L37.65 25.69M46.66 23.82L44.36 20.54M54.75 21.62L51.50 16.00M60.70 15.71L59.01 12.09M68.19 12.61L66.82 8.85M75.93 10.17L74.89 6.31M83.85 8.41L83.16 4.47M91.89 7.35L91.55 3.37"/></g>
+              <g class="dial-text"><g class="dial-spin"><text><textPath href="#wishTextRing" textLength="418" lengthAdjust="spacing">MAKE A WISH · 许个愿吧 · HAPPY 20TH · 生日快乐 ·</textPath></text></g></g>
+            </svg>
+            <span class="orbit-glow" aria-hidden="true"></span>
+            <span class="orbit-notch" aria-hidden="true"></span>
             <span class="orbit-ring" aria-hidden="true"></span>
             <span class="orbit-core" aria-hidden="true"><b>20</b><small>许个愿吧</small></span>
             <button class="wish-word" type="button" data-wish="快乐">快乐</button>
@@ -151,10 +160,11 @@
               <img class="wish-white" src="assets/white.webp" alt="白色小猫" width="640" height="705">
               <img class="wish-cake" src="assets/cake.webp" alt="生日蛋糕" width="640" height="480">
             </div>
+            <span class="wish-tag" id="wishTag" aria-hidden="true"></span>
             <h3>璐，惊喜正在靠近。</h3>
             <p id="chosenWish">把喜欢的事，放进新的这一岁。</p>
           </div>
-          <div class="dot-reveal" id="dotReveal" aria-hidden="true" hidden></div>
+          <div class="dot-reveal" id="dotReveal" aria-hidden="true"></div>
         </section>
 
         <section id="starsScene" class="scene stars-scene" aria-label="点亮三颗星，汇成二十岁" hidden>
@@ -175,9 +185,11 @@
           <div class="final-stage">
             <div class="final-card" id="finalCard">
               <img class="final-paper" src="assets/postcard.webp" alt="小猫送来的生日明信片" width="1500" height="975">
+              <span class="final-holo" aria-hidden="true"></span>
               <button class="final-cat final-orange" type="button" aria-label="摸摸贺卡上的橘猫"><img class="eyes-open" src="assets/orange.webp" alt="" width="640" height="704" draggable="false"><img class="eyes-closed" src="assets/orange-blink.webp" alt="" width="640" height="704" draggable="false"></button>
               <button class="final-cat final-white" type="button" aria-label="摸摸贺卡上的白猫"><img class="eyes-open" src="assets/white.webp" alt="" width="640" height="705" draggable="false"><img class="eyes-closed" src="assets/white-blink.webp" alt="" width="640" height="705" draggable="false"></button>
               <img class="final-cake" src="assets/cake-lit.webp" alt="点亮蜡烛的生日蛋糕" width="640" height="480">
+              <span class="final-glare" aria-hidden="true"></span>
             </div>
           </div>
           <p id="finalCatMessage" class="final-cat-message" aria-live="polite">摸摸小猫，收下最后一份祝福。</p>

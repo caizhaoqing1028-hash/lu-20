@@ -67,7 +67,7 @@ function setSlide(value, returning = false) {
   $('slideTitle').textContent = locked ? '惊喜已开启' : '拆开惊喜';
   $('slideHint').textContent = locked ? '小猫正在送来祝福' : slide >= .9 ? '松手，拆开惊喜' : '向右滑动白色圆点';
 }
-function resetSlide() { drag = null; slider.classList.remove('dragging'); if (!locked) setSlide(0, true); }
+function resetSlide() { drag = null; knob.style.scale = ''; slider.classList.remove('dragging'); if (!locked) setSlide(0, true); }
 function restorePostcard() { if (postcard.parentElement !== postcardWrap) postcardWrap.appendChild(postcard); postcardWrap.classList.remove('travelling'); }
 
 function showEntrance(focus = true) {
@@ -90,6 +90,7 @@ async function openGift() {
   if (opening || locked || entrance.hidden) return; // 只触发一次
   locked = true; slider.classList.add('locked'); setSlide(1, true); slider.setAttribute('aria-disabled', 'true'); slider.tabIndex = -1;
   $('entranceStatus').textContent = '信封打开了，小猫正在送来祝福。';
+  startMusic();
   if (reduced.matches) { finishEntrance(); return; }
   const gen = ++openGen; opening = true; openSize = [innerWidth, innerHeight]; entrance.setAttribute('aria-busy', 'true');
   const alive = () => opening && gen === openGen;
@@ -98,13 +99,16 @@ async function openGift() {
 
   envelopeCard.appendChild(postcard); entrance.classList.add('opening');
   for (const el of entrance.querySelectorAll('.entrance-copy,.entrance-actions,.entrance>.topbar')) run('open', el, [{opacity: 1, translate: '0 0'}, {opacity: 0, translate: '0 -10px'}], {duration: 460, easing: 'ease'});
-  run('open', entrance.querySelector('.env-closed'), [{opacity: 1}, {opacity: 0}], {duration: 280, easing: 'ease-out'});
-  for (const el of entrance.querySelectorAll('.env-open')) run('open', el, [{opacity: 0, translate: '0 0'}, {opacity: 1, translate: '0 4%'}], {duration: 480, delay: 100, easing: 'ease-out'});
+  run('open', entrance.querySelector('.env-closed'), [{opacity: 1}, {opacity: 0}], {duration: 220, easing: 'ease-out'});
+  for (const el of entrance.querySelectorAll('.env-open')) run('open', el, [{opacity: 0, translate: '0 0'}, {opacity: 1, translate: '0 4%'}], {duration: 240, easing: 'ease-out'});
+  const [photo, ticket] = entrance.querySelectorAll('.envelope-extra');
+  run('open', photo, [{opacity: 0, transform: 'translate(0,20%) rotate(0deg)'}, {opacity: 1, offset: .3}, {opacity: 1, transform: 'translate(-92%,-104%) rotate(-16deg)'}], {duration: 820, delay: 300, easing: 'cubic-bezier(.2,.8,.2,1.1)'});
+  run('open', ticket, [{opacity: 0, transform: 'translate(0,40%) rotate(0deg)'}, {opacity: 1, offset: .3}, {opacity: 1, transform: 'translate(-30%,-372%) rotate(-7deg)'}], {duration: 820, delay: 420, easing: 'cubic-bezier(.2,.8,.2,1.1)'});
   const lifted = await run('open', envelopeCard, [
     {opacity: 0, transform: 'translateY(16%) rotate(5deg) scale(.82)'},
     {opacity: 1, offset: .3},
     {opacity: 1, transform: 'translateY(-54%) rotate(0deg) scale(1)'}
-  ], {duration: 720, delay: 120, easing: 'cubic-bezier(.2,.7,.2,1)'});
+  ], {duration: 720, delay: 230, easing: 'cubic-bezier(.2,.7,.2,1)'});
   if (!lifted || !alive()) return;
 
   // 同一张明信片从信封移动到礼物页的位置
@@ -133,10 +137,16 @@ slider.addEventListener('pointermove', e => {
   if (!drag || e.pointerId !== drag.id) return;
   const dx = e.clientX - drag.x; if (Math.abs(dx) > 4) drag.moved = true;
   setSlide(drag.start + dx / drag.px);
+  if (!reduced.matches) {
+    const v = drag.lastT ? (e.clientX - drag.lastX) / Math.max(8, e.timeStamp - drag.lastT) : 0;
+    drag.v = (drag.v || 0) * .6 + v * .4; drag.lastX = e.clientX; drag.lastT = e.timeStamp;
+    const k = Math.min(.22, Math.abs(drag.v) * .35);
+    knob.style.scale = `${(1.22 + k).toFixed(3)} ${(1.1 - k * .45).toFixed(3)}`;
+  }
 });
 slider.addEventListener('pointerup', e => {
   if (!drag || e.pointerId !== drag.id) return;
-  const d = drag; drag = null; slider.classList.remove('dragging');
+  const d = drag; drag = null; knob.style.scale = ''; slider.classList.remove('dragging');
   if (!d.moved) { setSlide(0, true); return; } // 单击不拆信
   setSlide(d.start + (e.clientX - d.x) / d.px);
   if (slide >= .9) openGift(); else setSlide(0, true);
@@ -152,7 +162,7 @@ slider.addEventListener('keydown', e => {
   setSlide(e.key === 'Home' ? 0 : slide + (['ArrowRight', 'ArrowUp'].includes(e.key) ? .1 : -.1));
   if (slide >= .999) openGift();
 });
-$('skipEntrance').addEventListener('click', finishEntrance);
+$('skipEntrance').addEventListener('click', () => { startMusic(); finishEntrance(); });
 $('reopenEntrance').addEventListener('click', () => showEntrance());
 addEventListener('blur', () => { if (drag) resetSlide(); });
 
@@ -236,7 +246,7 @@ function finishSceneCopy(status) {
   if (status) $('stageStatus').textContent = status;
   setCopy($('stageInstruction'), SCENES[state.scene].done); revealCopy($('stageInstruction'), 80);
 }
-function renderScene(focus = true) {
+function renderScene(focus = true, dir = 0) {
   cancelScene();
   const i = state.scene, S = SCENES[i];
   experience.dataset.scene = String(i);
@@ -248,7 +258,8 @@ function renderScene(focus = true) {
   $('stageStatus').textContent = S.status; stageScroll.scrollTop = 0;
   [enterJoy, enterWish, enterStars, enterFinal][i]();
   updateControls();
-  run('scene', $(sceneIds[i]), [{opacity: 0, transform: 'translateY(16px)'}, {opacity: 1, transform: 'none'}], {duration: 900, delay: 220, easing: 'cubic-bezier(.2,.65,.3,1)'});
+  run('scene', $(sceneIds[i]), [{opacity: 0, transform: dir ? `translateX(${dir * 36}px)` : 'translateY(16px)'}, {opacity: 1, transform: 'none'}], {duration: dir ? 760 : 900, delay: dir ? 120 : 220, easing: 'cubic-bezier(.2,.75,.25,1)'});
+  if (dir) run('scene', experience.querySelector('.stage-heading'), [{opacity: .2, transform: `translateX(${dir * 20}px)`}, {opacity: 1, transform: 'none'}], {duration: 700, easing: 'cubic-bezier(.2,.75,.25,1)'});
   [$('stageChapter'), display, $('stageTitle'), $('stageInstruction')].forEach((el, k) => revealCopy(el, k * 130));
   syncActivity();
   if (focus) $('stageTitle').focus({preventScroll: true});
@@ -262,7 +273,7 @@ experience.addEventListener('close', () => {
 });
 experience.addEventListener('cancel', e => { e.preventDefault(); closeExperience(); });
 $('closeExperience').addEventListener('click', closeExperience);
-$('stageBack').addEventListener('click', () => { if (state.scene === 0) closeExperience(); else { state.scene--; renderScene(); } });
+$('stageBack').addEventListener('click', () => { if (state.scene === 0) closeExperience(); else { state.scene--; renderScene(true, -1); } });
 function nudgeScene() {
   const i = state.scene, wiggle = [{transform: 'none'}, {transform: 'translateY(-6px) rotate(-4deg)', offset: .3}, {transform: 'translateY(-2px) rotate(3deg)', offset: .65}, {transform: 'none'}];
   const tips = ['把橙色圆点拖到最右边就好啦。', '转一转圆环，点一个喜欢的词。', '还有星星没点亮哦。', '轻点贺卡上的橘猫或白猫。'];
@@ -275,7 +286,7 @@ function nudgeScene() {
 $('stageNext').addEventListener('click', () => {
   const i = state.scene; if (sceneBusy) return;
   if (!state.done[i]) { nudgeScene(); return; }
-  if (i < 3) { state.scene++; renderScene(); if (state.scene === 2) beginDepth(); }
+  if (i < 3) { state.scene++; renderScene(true, 1); if (state.scene === 2) beginDepth(); }
   else showLetter($('stageNext'));
 });
 
@@ -337,12 +348,23 @@ joyDot.addEventListener('keydown', e => {
 
 /* --- 第二段：祝福圆环 --- */
 const orbit = $('wishOrbit'), words = [...orbit.querySelectorAll('.wish-word')], ring = orbit.querySelector('.orbit-ring');
+const dialTicks = orbit.querySelector('.dial-ticks'), dialText = orbit.querySelector('.dial-text');
+// 祝福词前的小图标
+const WISH_ICONS = {
+  快乐: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0M9 9.6v.1M15 9.6v.1"/>',
+  勇气: '<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 1.6 1 2.4 2 3 0-3 .5-5.5.5-8Z"/>',
+  自由: '<path d="M20 4C11 4 6 9 5 20M20 4c0 7-4.2 11-10.5 11M14.5 9.5H9.5"/>',
+  好运: '<path d="M12 12c-3.2-.6-5.3-2.6-4-4.7s4-.4 4 1.7c0-2.1 2.7-3.8 4-1.7s-.8 4.1-4 4.7Zm0 0c-3.2.6-5.3 2.6-4 4.7s4 .4 4-1.7c0 2.1 2.7 3.8 4 1.7s-.8-4.1-4-4.7Zm0 0c.6-3.2 2.6-5.3 4.7-4M12 12c-.6 3.2.6 6.5 3 8"/>',
+  小猫: '<path d="M5 9 4.5 4l4 3h7l4-3-.5 5c1 1.3 1.5 2.7 1.5 4.2C20.5 17 16.9 20 12 20s-8.5-3-8.5-6.8C3.5 11.7 4 10.3 5 9Z"/><path d="M9.5 13v.1M14.5 13v.1"/>',
+  热爱: '<path d="M12 20s-7-4.4-8.6-8.7C2.2 8 4.2 4.8 7.4 4.8c1.9 0 3.3 1 4.6 2.7 1.3-1.7 2.7-2.7 4.6-2.7 3.2 0 5.2 3.2 4 6.5C19 15.6 12 20 12 20Z"/>'
+};
+words.forEach(b => b.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 24 24" aria-hidden="true">${WISH_ICONS[b.dataset.wish]}</svg>`));
 let orbitDrag = null, spin = 0;
 function layoutOrbit() {
   const scene = $('wishScene'), w = scene.clientWidth, h = scene.clientHeight;
   if (!w) return;
   const size = Math.round(Math.max(220, Math.min(w, h - 6, 330)));
-  orbit.style.setProperty('--orbit', size + 'px'); $('wishScene').style.setProperty('--art', Math.max(200, Math.min(300, h - 110)) + 'px');
+  orbit.style.setProperty('--orbit', size + 'px'); $('wishScene').style.setProperty('--art', Math.max(180, Math.min(300, h - 160)) + 'px');
   const radius = size / 2 - 32;
   words.forEach((button, i) => {
     const a = (-90 + i * 60 + state.rotation) * Math.PI / 180;
@@ -350,6 +372,11 @@ function layoutOrbit() {
     button.setAttribute('aria-pressed', String(state.wish === button.dataset.wish));
   });
   ring.style.rotate = state.rotation + 'deg';
+  dialTicks.style.transform = `rotate(${state.rotation}deg)`; dialText.style.transform = `rotate(${-state.rotation * .5}deg)`;
+  // 转到顶部指示点下的祝福微微高亮
+  let best = null, bestGap = 99;
+  words.forEach((b, i) => { const gap = Math.abs((((i * 60 + state.rotation) % 360) + 540) % 360 - 180); if (gap < bestGap) { bestGap = gap; best = b; } });
+  words.forEach(b => b.classList.toggle('active', b === best && !state.wish));
 }
 const spinLoop = makeLoop(dt => {
   state.rotation += spin * dt; spin *= Math.pow(.93, dt / 16); layoutOrbit();
@@ -387,61 +414,90 @@ words.forEach(button => {
   button.addEventListener('click', e => { if (e.detail === 0) chooseWish(button.dataset.wish); }); // 键盘
   button.addEventListener('keydown', e => { if (['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); state.rotation += e.key === 'ArrowRight' ? 15 : -15; layoutOrbit(); } });
 });
-const revealParts = () => { const art = $('wishReveal').querySelector('.wish-art'); return [art.querySelector('.sun'), ...art.querySelectorAll('img'), $('wishReveal').querySelector('h3'), $('chosenWish')]; };
+const revealParts = () => { const art = $('wishReveal').querySelector('.wish-art'); return [art.querySelector('.sun'), ...art.querySelectorAll('img'), $('wishReveal').querySelector('h3'), $('chosenWish'), $('wishTag')]; };
 function enterWish() {
   $('wishOrbit').hidden = !!state.wish; $('wishReveal').hidden = !state.wish; $('dotReveal').replaceChildren();
   words.forEach(w => w.classList.remove('chosen')); revealParts().forEach(el => { el.style.opacity = ''; });
   layoutOrbit();
   if (!state.wish) return;
-  setCopy($('chosenWish'), `把「${state.wish}」，放进新的这一岁。`);
+  setCopy($('chosenWish'), `把「${state.wish}」，放进新的这一岁。`); $('wishTag').textContent = state.wish;
   if (state.done[1]) { $('stageStatus').textContent = `这份${state.wish}，全部送给璐。`; revealCopy($('chosenWish'), 520); }
   else revealWish(false);
 }
 function chooseWish(value) { if (sceneBusy || state.wish || state.scene !== 1) return; spinLoop.stop(); spin = 0; state.wish = value; revealWish(true); }
+// 星屑与冲击波：从 (x, y) 向外绽放
+function burst(x, y, size, count = 30) {
+  const fx = $('dotReveal'), colors = ['#ff8a3d', '#ff4d6d', '#ffd27a', '#ffb15e', '#ffffff', '#ff6a2b'], runs = [];
+  const shock = document.createElement('i'); shock.className = 'shock';
+  Object.assign(shock.style, {width: '40px', height: '40px', left: x - 20 + 'px', top: y - 20 + 'px'}); fx.appendChild(shock);
+  runs.push(run('scene', shock, [{transform: 'scale(.4)', opacity: 1}, {transform: `scale(${size / 40 * 1.1})`, opacity: 0}], {duration: 760, easing: 'cubic-bezier(.1,.6,.3,1)'}));
+  for (let k = 0; k < count; k++) {
+    const a = k / count * Math.PI * 2 + Math.random() * .4, d = size * (.22 + Math.random() * .38), r = 3 + Math.random() * 6;
+    const dot = document.createElement('i');
+    Object.assign(dot.style, {width: r * 2 + 'px', height: r * 2 + 'px', left: x - r + 'px', top: y - r + 'px', background: colors[k % colors.length], boxShadow: `0 0 ${r * 2}px ${colors[k % colors.length]}`});
+    fx.appendChild(dot);
+    runs.push(run('scene', dot, [{transform: 'translate(0,0) scale(.3)', opacity: 1}, {transform: `translate(${Math.cos(a) * d * .7}px,${Math.sin(a) * d * .7}px) scale(1)`, opacity: 1, offset: .45}, {transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d + 18}px) scale(0)`, opacity: 0}],
+      {duration: 800 + Math.random() * 400, easing: 'cubic-bezier(.1,.7,.3,1)'}));
+  }
+  return runs;
+}
 async function revealWish(fromOrbit) {
-  const gen = sceneGen, scene = $('wishScene'), reveal = $('wishReveal'), dots = $('dotReveal');
-  const parts = revealParts(), sun = parts[0], imgs = parts.slice(1, 4), texts = parts.slice(4);
+  const gen = sceneGen, scene = $('wishScene'), reveal = $('wishReveal'), fx = $('dotReveal'), tag = $('wishTag');
+  const parts = revealParts(), sun = parts[0], imgs = parts.slice(1, 4), texts = parts.slice(4, 6);
   sceneBusy = true; updateControls();
-  setCopy($('chosenWish'), `把「${state.wish}」，放进新的这一岁。`);
+  setCopy($('chosenWish'), `把「${state.wish}」，放进新的这一岁。`); tag.textContent = state.wish;
   const finish = () => {
-    dots.replaceChildren(); state.done[1] = true; sceneBusy = false;
+    fx.replaceChildren(); state.done[1] = true; sceneBusy = false;
     finishSceneCopy(`这份${state.wish}，全部送给璐。`); updateControls();
   };
   if (reduced.matches) { $('wishOrbit').hidden = true; reveal.hidden = false; layoutOrbit(); finish(); return; }
   reveal.hidden = false; layoutOrbit(); parts.forEach(el => { el.style.opacity = '0'; });
-  const sr = sun.getBoundingClientRect(), scr = scene.getBoundingClientRect();
-  let startScale = .2;
-  // 1. 其余祝福散开，选中的词飞到太阳的位置
-  const chip = words.find(b => b.dataset.wish === state.wish);
+  const scr = scene.getBoundingClientRect(), tr = tag.getBoundingClientRect(), sr = sun.getBoundingClientRect();
+  const chip = words.find(b => b.dataset.wish === state.wish), runs = [];
   if (fromOrbit && chip && !$('wishOrbit').hidden) {
+    const or = orbit.getBoundingClientRect(), ox = or.left + or.width / 2, oy = or.top + or.height / 2, core = orbit.querySelector('.orbit-core');
+    chip.classList.add('chosen');
+    // 1. 许愿：其余祝福沿弧线被吸进圆心，圆环旋转收拢，圆心像水滴一样鼓动
+    words.filter(w => w !== chip).forEach((w, k) => {
+      const r = w.getBoundingClientRect(), dx = ox - r.left - r.width / 2, dy = oy - r.top - r.height / 2;
+      run('scene', w, [{transform: 'none', opacity: 1}, {transform: `translate(${dx * .45 - dy * .32}px,${dy * .45 + dx * .32}px) scale(.8) rotate(16deg)`, opacity: 1, offset: .55}, {transform: `translate(${dx}px,${dy}px) scale(.12) rotate(36deg)`, opacity: 0}],
+        {duration: 640, delay: k * 60, easing: 'cubic-bezier(.55,0,.35,1)'});
+    });
+    run('scene', ring, [{transform: 'rotate(0deg) scale(1)', opacity: 1}, {transform: 'rotate(140deg) scale(.5)', opacity: 0}], {duration: 900, easing: 'cubic-bezier(.5,0,.3,1)'});
+    run('scene', orbit.querySelector('.orbit-dial'), [{transform: 'rotate(0deg) scale(1)', opacity: 1}, {transform: 'rotate(-90deg) scale(.6)', opacity: 0}], {duration: 900, easing: 'cubic-bezier(.5,0,.3,1)'});
+    run('scene', orbit.querySelector('.orbit-glow'), [{transform: 'scale(1)', opacity: .62}, {transform: 'scale(1.5)', opacity: .9, offset: .7}, {transform: 'scale(.3)', opacity: 0}], {duration: 1050, easing: 'ease-in-out'});
+    run('scene', orbit.querySelector('.orbit-notch'), [{opacity: 1}, {opacity: 0}], {duration: 300});
+    words.forEach(w => w.classList.remove('active'));
+    run('scene', chip, [{transform: 'none'}, {transform: 'scale(1.2)', offset: .4}, {transform: 'scale(1.1)'}], {duration: 700, easing: 'cubic-bezier(.3,1.4,.5,1)'});
+    const absorbed = await run('scene', core, [{transform: 'scale(1)'}, {transform: 'scale(1.07)', offset: .3}, {transform: 'scale(.93)', offset: .55}, {transform: 'scale(1.16)', offset: .85}, {transform: 'scale(1.12)'}], {duration: 880, easing: 'ease-in-out'});
+    if (!absorbed || gen !== sceneGen) return;
+    // 2. 绽放：圆心炸开，冲击波与星屑；选中的祝福飞成下方的小标签
+    run('scene', core, [{transform: 'scale(1.12)', opacity: 1}, {transform: 'scale(1.7)', opacity: 0}], {duration: 380, easing: 'ease-out'});
+    runs.push(...burst(ox - scr.left, oy - scr.top, Math.min(scr.width, scr.height)));
     const cr = chip.getBoundingClientRect();
-    chip.classList.add('chosen'); startScale = cr.height / sr.width;
-    words.filter(w => w !== chip).forEach((w, k) => run('scene', w, [{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'scale(.55)'}], {duration: 420, delay: k * 35, easing: 'ease-in'}));
-    run('scene', orbit.querySelector('.orbit-core'), [{opacity: 1}, {opacity: 0}], {duration: 360, easing: 'ease-out'});
-    run('scene', ring, [{opacity: 1, transform: 'scale(1)'}, {opacity: 0, transform: 'scale(1.18)'}], {duration: 560, easing: 'ease-out'});
-    const moved = await run('scene', chip, [{transform: 'none'}, {transform: `translate(${sr.left + sr.width / 2 - cr.left - cr.width / 2}px,${sr.top + sr.height / 2 - cr.top - cr.height / 2}px)`}], {duration: 560, delay: 120, easing: 'cubic-bezier(.55,0,.2,1)'});
-    if (!moved || gen !== sceneGen) return;
+    const flight = run('scene', chip, [{transform: 'scale(1.1)'}, {transform: `translate(${tr.left + tr.width / 2 - cr.left - cr.width / 2}px,${tr.top + tr.height / 2 - cr.top - cr.height / 2}px) scale(${(tr.height / chip.offsetHeight).toFixed(3)})`}],
+      {duration: 620, delay: 80, easing: 'cubic-bezier(.5,0,.2,1)'});
+    // 标签还在飞，太阳就开始打开；落地时标签轻轻弹开
+    runs.push(flight.then(ok => {
+      if (!ok || gen !== sceneGen) return false;
+      $('wishOrbit').hidden = true; tag.style.opacity = '';
+      return run('scene', tag, [{transform: 'scale(.7)', filter: 'brightness(1.3)'}, {transform: 'scale(1.08)', offset: .55}, {transform: 'none', filter: 'none'}], {duration: 560, easing: 'cubic-bezier(.3,1.4,.5,1)'});
+    }));
+    await new Promise(r => setTimeout(r, 300));
+    if (gen !== sceneGen) return;
+    parts.forEach(el => { if (el !== tag) el.style.opacity = ''; });
+  } else {
+    $('wishOrbit').hidden = true; parts.forEach(el => { el.style.opacity = ''; });
+    runs.push(run('scene', tag, [{opacity: 0}, {opacity: 1}], {duration: 500}));
   }
-  $('wishOrbit').hidden = true; parts.forEach(el => { el.style.opacity = ''; });
-  // 2. 词长成太阳，点阵从太阳边缘向外散开
-  const cx = sr.left + sr.width / 2 - scr.left, cy = sr.top + sr.height / 2 - scr.top, R = sr.width / 2, runs = [];
-  runs.push(run('scene', sun, [{transform: `scale(${startScale})`}, {transform: 'scale(1.05)', offset: .7}, {transform: 'scale(1)'}], {duration: 780, easing: 'cubic-bezier(.2,.8,.2,1)'}));
-  for (let ringIndex = 0; ringIndex < 4; ringIndex++) {
-    const count = 16 + ringIndex * 6;
-    for (let k = 0; k < count; k++) {
-      const a = (k / count + ringIndex * .07) * Math.PI * 2, r0 = R * (.45 + ringIndex * .08), r1 = R * (1.25 + ringIndex * .24);
-      const dot = document.createElement('i'); dot.style.left = cx + 'px'; dot.style.top = cy + 'px'; dots.appendChild(dot);
-      runs.push(run('scene', dot, [
-        {transform: `translate(${Math.cos(a) * r0}px,${Math.sin(a) * r0}px) scale(.4)`, opacity: 0},
-        {opacity: 1, offset: .25},
-        {transform: `translate(${Math.cos(a) * r1}px,${Math.sin(a) * r1}px) scale(0)`, opacity: 0}
-      ], {duration: 1000, delay: 160 + ringIndex * 70, easing: 'cubic-bezier(.2,.7,.2,1)'}));
-    }
-  }
-  // 3. 小猫和蛋糕从太阳后面升起，文字慢慢浮现
-  imgs.forEach((img, k) => runs.push(run('scene', img, [{opacity: 0, transform: `translateY(${k === 2 ? 18 : 30}px) scale(.92)`}, {opacity: 1, transform: 'none'}], {duration: 760, delay: 380 + k * 110, easing: 'cubic-bezier(.2,.9,.25,1.15)'})));
-  revealCopy(texts[0], 700); revealCopy(texts[1], 860);
+  // 3. 揭幕：太阳像光圈一样从中心打开，小猫从两侧弹进来，蛋糕升起
+  runs.push(run('scene', sun, [{clipPath: 'circle(0% at 50% 50%)', transform: 'scale(.86) rotate(-24deg)'}, {clipPath: 'circle(71% at 50% 50%)', transform: 'none'}], {duration: 900, easing: 'cubic-bezier(.2,.8,.2,1)'}));
+  const enter = [['translate(-46px,24px) rotate(-20deg) scale(.55)', 260], ['translate(46px,24px) rotate(20deg) scale(.55)', 380], ['translateY(36px) scale(.7)', 520]];
+  imgs.forEach((img, k) => runs.push(run('scene', img, [{opacity: 0, transform: enter[k][0]}, {opacity: 1, offset: .35}, {opacity: 1, transform: 'none'}], {duration: 820, delay: enter[k][1], easing: 'cubic-bezier(.3,1.45,.5,1)'})));
+  setTimeout(() => { if (gen === sceneGen && !$('wishReveal').hidden) runs.push(...burst(sr.left + sr.width / 2 - scr.left, sr.top + sr.height * .62 - scr.top, sr.width * 1.15, 16)); }, 640);
+  revealCopy(texts[0], 760); revealCopy(texts[1], 920);
   const ok = await Promise.all(runs);
+  await new Promise(r => setTimeout(r, 650));
   if (gen !== sceneGen || ok.includes(false)) return;
   finish();
 }
@@ -451,6 +507,7 @@ const starCanvas = $('starCanvas'), starButtons = [...document.querySelectorAll(
 let sctx = null; try { sctx = starCanvas.getContext('2d'); } catch { sctx = null; }
 let sw = 0, sh = 0, sClock = 0, fullTime = 0, starPos = [[0, 0], [0, 0], [0, 0]], glyph = null;
 const groups = [0, 0, 0]; // 每颗主星带来的粒子汇聚进度
+const repel = {x: 0, y: 0, k: 0, on: false};
 function seeded(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function makeSprite(inner, mid) {
   const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'), grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
@@ -461,7 +518,7 @@ function buildGlyph() {
   if (glyph || !sctx) return glyph;
   try {
     const W = 420, H = 280, c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `800 236px ${LATIN}`; g.fillText('20', W / 2, H / 2 + 6);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `italic 700 250px Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif`; g.fillText('20', W / 2, H / 2 + 6);
     const data = g.getImageData(0, 0, W, H).data, rand = seeded(20061023), pts = [];
     for (let y = 2; y < H; y += 4) for (let x = 2; x < W; x += 4) if (data[(y * W + x) * 4 + 3] > 140) pts.push([x + (rand() - .5) * 2.4, y + (rand() - .5) * 2.4]);
     if (pts.length < 50) return null;
@@ -511,7 +568,12 @@ function drawStars() {
     const sx = sx0 + p.ox + wob, sy = sy0 + p.oy + Math.cos(t * .0008 + p.phase) * 2.4;
     const hx = f.x0 + p.hx * f.s, hy = f.y0 + p.hy * f.s + (still ? 0 : Math.sin(t * .0007 + p.hx * .05) * .8 * e);
     const mx = (sx + hx) / 2 - (hy - sy) * .25 * p.bend, my = (sy + hy) / 2 + (hx - sx) * .25 * p.bend;
-    const u = 1 - e, x = u * u * sx + 2 * u * e * mx + e * e * hx, y = u * u * sy + 2 * u * e * my + e * e * hy;
+    const u = 1 - e;
+    let x = u * u * sx + 2 * u * e * mx + e * e * hx, y = u * u * sy + 2 * u * e * my + e * e * hy;
+    if (repel.k > .01) {
+      const dx = x - repel.x, dy = y - repel.y, d = Math.hypot(dx, dy) || 1, R = 78;
+      if (d < R) { const push = Math.pow(1 - d / R, 3) * 34 * repel.k; x += dx / d * push; y += dy / d * push; }
+    }
     const twinkle = still ? .85 : .6 + .4 * Math.sin(t * .0024 + p.phase);
     c.globalAlpha = (lit[p.g] ? .5 + .5 * e : .22) * twinkle;
     const r = p.size * (lit[p.g] ? 1 + .9 * Math.sin(e * Math.PI) : .8);
@@ -533,6 +595,7 @@ function drawStars() {
 }
 const starLoop = makeLoop(dt => {
   sClock += dt;
+  repel.k += ((repel.on ? 1 : 0) - repel.k) * Math.min(1, dt / (repel.on ? 90 : 420));
   state.stars.forEach((on, i) => { if (on) groups[i] = Math.min(1, groups[i] + dt / 1500); });
   if (state.stars.every(Boolean) && groups.every(v => v >= 1) && !state.done[2]) { fullTime += dt; if (fullTime >= 700) completeStars(); }
   drawStars();
@@ -546,7 +609,7 @@ function renderStarButtons() {
 }
 function enterStars() {
   buildGlyph(); renderStarButtons(); resizeStars();
-  if (state.done[2]) { $('stageStatus').textContent = '这一片星光，属于你。'; revealCopy($('starBlessing'), 520); }
+  if (state.done[2]) { $('stageStatus').textContent = '这一片星光属于你，用手指拨一拨。'; revealCopy($('starBlessing'), 520); }
   else checkStarsStill();
 }
 function checkStarsStill() {
@@ -558,8 +621,16 @@ function completeStars() {
   if (state.done[2]) return;
   state.done[2] = true; groups.fill(1); renderStarButtons(); drawStars();
   revealCopy($('starCount')); revealCopy($('starBlessing'), 200);
-  finishSceneCopy('这一片星光，属于你。'); updateControls();
+  finishSceneCopy('这一片星光属于你，用手指拨一拨。'); updateControls();
 }
+const starsScene = $('starsScene');
+function moveRepel(e) {
+  if (reduced.matches || (e.pointerType !== 'mouse' && e.buttons === 0 && e.type === 'pointermove')) return;
+  const r = starsScene.getBoundingClientRect(); repel.x = e.clientX - r.left; repel.y = e.clientY - r.top; repel.on = true;
+}
+starsScene.addEventListener('pointermove', moveRepel);
+starsScene.addEventListener('pointerdown', moveRepel);
+for (const type of ['pointerleave', 'pointerup', 'pointercancel']) starsScene.addEventListener(type, e => { if (type !== 'pointerup' || e.pointerType !== 'mouse') repel.on = false; });
 starButtons.forEach((button, i) => button.addEventListener('click', () => {
   if (state.stars[i] || state.scene !== 2) return;
   state.stars[i] = true; renderStarButtons(); revealCopy($('starCount'));
@@ -609,12 +680,23 @@ document.querySelectorAll('.final-cat').forEach(cat => cat.addEventListener('cli
   setCopy($('finalCatMessage'), cat.classList.contains('final-orange') ? '橘猫：今天的好运，全部送给璐。' : '白猫：愿你一直被温柔对待。'); revealCopy($('finalCatMessage'));
   if (!state.done[3]) { state.done[3] = true; finishSceneCopy('最后一封信，等你拆开。'); updateControls(); }
 }));
+let tiltPointer = null;
+function tiltCard(e) {
+  const r = finalCard.getBoundingClientRect(), x = clamp((e.clientX - r.left) / r.width), y = clamp((e.clientY - r.top) / r.height);
+  finalCard.classList.add('tilting');
+  finalCard.style.setProperty('--ry', ((x * 2 - 1) * 9).toFixed(2) + 'deg'); finalCard.style.setProperty('--rx', ((1 - y * 2) * 7).toFixed(2) + 'deg');
+  finalCard.style.setProperty('--hx', (x * 100).toFixed(1) + '%'); finalCard.style.setProperty('--hy', (y * 100).toFixed(1) + '%');
+  finalCard.style.setProperty('--gx', (x * 100).toFixed(1) + '%'); finalCard.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
+}
+function untiltCard() { tiltPointer = null; finalCard.classList.remove('tilting'); for (const k of ['--rx', '--ry', '--hx', '--hy', '--gx', '--gy']) finalCard.style.removeProperty(k); }
+finalCard.addEventListener('pointerdown', e => { if (reduced.matches || e.pointerType === 'mouse') return; tiltPointer = e.pointerId; tiltCard(e); });
 finalCard.addEventListener('pointermove', e => {
-  if (reduced.matches || e.pointerType === 'touch') return;
-  const r = finalCard.getBoundingClientRect(), x = clamp((e.clientX - r.left) / r.width) * 2 - 1, y = clamp((e.clientY - r.top) / r.height) * 2 - 1;
-  finalCard.style.setProperty('--ry', (x * 6).toFixed(2) + 'deg'); finalCard.style.setProperty('--rx', (-y * 5).toFixed(2) + 'deg');
+  if (reduced.matches || (e.pointerType !== 'mouse' && e.pointerId !== tiltPointer)) return;
+  tiltCard(e);
 });
-finalCard.addEventListener('pointerleave', () => { finalCard.style.removeProperty('--ry'); finalCard.style.removeProperty('--rx'); });
+finalCard.addEventListener('pointerleave', untiltCard);
+finalCard.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') untiltCard(); });
+finalCard.addEventListener('pointercancel', untiltCard);
 $('restartExperience').addEventListener('click', () => {
   state = freshState(); groups.fill(0); fullTime = 0;
   setCopy($('finalCatMessage'), '摸摸小猫，收下最后一份祝福。'); renderScene();
@@ -637,9 +719,72 @@ letter.addEventListener('click', e => {
 $('letterButton').addEventListener('click', () => showLetter($('letterButton')));
 $('closeLetter').addEventListener('click', closeLetter);
 
+/* ================= 液态玻璃：高光跟随指尖 ================= */
+const GLASS = '.glass,.primary,.control-next';
+function lightGlass(e) {
+  if (reduced.matches) return;
+  const el = e.target instanceof Element ? e.target.closest(GLASS) : null;
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  el.classList.add('lit');
+  el.style.setProperty('--mx', clamp((e.clientX - r.left) / r.width, -.2, 1.2) * 100 + '%');
+  el.style.setProperty('--my', clamp((e.clientY - r.top) / r.height, -.4, 1.4) * 100 - 30 + '%');
+}
+function dimGlass(e) {
+  const el = e.target instanceof Element ? e.target.closest(GLASS) : null;
+  if (!el || (e.relatedTarget instanceof Node && el.contains(e.relatedTarget))) return;
+  el.classList.remove('lit'); el.style.removeProperty('--mx'); el.style.removeProperty('--my');
+}
+document.addEventListener('pointermove', lightGlass, {passive: true});
+document.addEventListener('pointerdown', lightGlass, {passive: true});
+document.addEventListener('pointerout', dimGlass, {passive: true});
+document.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') dimGlass({target: e.target, relatedTarget: null}); }, {passive: true});
+
+/* ================= 背景音乐：拆信时淡入，音量 10% ================= */
+// iPhone 不允许网页直接改 audio.volume，所以用 Web Audio 的增益节点控制音量。
+const MUSIC_VOLUME = .1;
+const music = {ctx: null, gain: null, source: null, on: true, started: false, ready: false};
+const musicButtons = [...document.querySelectorAll('.music-toggle')];
+function musicFade(value, seconds) {
+  if (!music.gain) return;
+  const g = music.gain.gain, now = music.ctx.currentTime;
+  g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(value, now + seconds);
+}
+function renderMusicButtons() {
+  const playing = music.on && music.ready && !isAway();
+  musicButtons.forEach(b => { b.setAttribute('aria-pressed', String(music.on)); b.setAttribute('aria-label', music.on ? '背景音乐：开，点一下静音' : '背景音乐：关，点一下播放'); b.classList.toggle('playing', playing); });
+}
+function startMusic() { // 必须在用户的点击或滑动里调用
+  if (music.started) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  music.started = true;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+  music.ctx = new AC(); music.gain = music.ctx.createGain(); music.gain.gain.value = 0; music.gain.connect(music.ctx.destination);
+  music.ctx.resume?.();
+  fetch('assets/music.mp3').then(r => r.arrayBuffer()).then(data => new Promise((ok, no) => music.ctx.decodeAudioData(data, ok, no))).then(buffer => {
+    music.source = music.ctx.createBufferSource(); music.source.buffer = buffer; music.source.loop = true; music.source.connect(music.gain); music.source.start();
+    music.ready = true; syncMusic(2.8);
+  }).catch(() => { music.started = false; });
+}
+function syncMusic(fade = .8) {
+  renderMusicButtons();
+  if (!music.ready) return;
+  if (music.on && !isAway()) { music.ctx.resume?.(); musicFade(MUSIC_VOLUME, fade); }
+  else { musicFade(0, .35); clearTimeout(music.suspendTimer); music.suspendTimer = setTimeout(() => { if (!(music.on && !isAway())) music.ctx.suspend?.(); }, 400); }
+}
+musicButtons.forEach(b => b.addEventListener('click', () => {
+  music.on = !music.on;
+  if (music.on && !music.started) startMusic(); else syncMusic();
+  renderMusicButtons();
+}));
+// 直接从 #gift 进入时，第一次点击页面再开始播放
+document.addEventListener('click', e => { if (!music.started && entrance.hidden && music.on && !e.target.closest('.music-toggle')) startMusic(); }, true);
+
 /* ================= 全局状态同步 ================= */
 function syncDialogs() { body.classList.toggle('dialog-open', experience.open || letter.open); syncActivity(); }
 function syncActivity() {
+  if (typeof syncMusic === 'function' && music.started) syncMusic();
   body.classList.toggle('is-hidden', isAway());
   experience.classList.toggle('paused', !stageActive());
   for (const group in live) for (const a of live[group]) {
