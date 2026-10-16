@@ -1,5 +1,7 @@
 'use strict';
 (() => {
+// 放在 iPhone 外框里预览时，底部给横条留出位置
+try { if (window.self !== window.top) document.documentElement.classList.add('in-frame'); } catch { document.documentElement.classList.add('in-frame'); }
 const $ = id => document.getElementById(id);
 const body = document.body;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');

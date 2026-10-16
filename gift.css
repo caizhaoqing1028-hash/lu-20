@@ -102,7 +102,7 @@ svg { flex-shrink:0; }
 
 .entrance-actions::before,.stage-controls::before,.extras::before { content:""; position:absolute; z-index:-1; pointer-events:none; filter:blur(22px);
   background:radial-gradient(38% 55% at 22% 50%,rgba(255,150,90,.5),transparent 72%),radial-gradient(36% 55% at 60% 40%,rgba(255,206,120,.4),transparent 72%),radial-gradient(38% 55% at 86% 55%,rgba(255,110,160,.42),transparent 72%); }
-.entrance-actions::before { left:-6%; right:-6%; top:-8%; height:82%; }
+.entrance-actions::before { left:-6%; right:-6%; top:-8%; height:82%; opacity:.5; }
 .stage-controls { position:relative; }
 .stage-controls::before { left:-4%; right:-4%; top:-30%; bottom:-30%; opacity:.75; }
 .extras { position:relative; }
@@ -487,3 +487,10 @@ body.dialog-open .paper-light i { animation-play-state:paused !important; }
   .pet .eyes-open { opacity:0; }
   .pet .eyes-closed { opacity:1; }
 }
+
+/* iPhone 外框预览：画面铺到底，横条浮在上面 */
+.in-frame .entrance { padding-bottom:30px; }
+.in-frame .gift { padding-bottom:30px; }
+.in-frame .stage { padding-bottom:28px; }
+.in-frame .letter { max-height:min(calc(100% - 52px),780px); margin-bottom:34px; }
+.in-frame .toast { bottom:42px; }
