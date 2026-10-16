@@ -75,7 +75,8 @@ svg { flex-shrink:0; }
 .link-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; padding:0 6px; border:0; background:none; font:500 14px/1 var(--sans); letter-spacing:.04em; color:var(--ink-2); }
 .link-button svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:translate .35s var(--ease-out); }
 .link-button:hover svg { translate:3px 0; }
-.link-button.quiet { font-size:13px; font-weight:500; color:var(--persimmon-deep); }
+.link-button.quiet { font-size:13px; font-weight:500; color:var(--ink-2); }
+.final-scene .link-button.quiet { color:var(--persimmon-deep); }
 
 /* ---------- 1. 入口 ---------- */
 .entrance { scrollbar-width:none; position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; align-items:center; padding:max(6px,env(safe-area-inset-top)) 24px max(14px,env(safe-area-inset-bottom)); overflow-x:hidden; overflow-y:auto; }
@@ -174,7 +175,7 @@ svg { flex-shrink:0; }
 .dateline::before,.dateline::after { content:""; width:20px; height:1px; background:currentColor; opacity:.35; }
 #giftTitle { margin:clamp(6px,1.4vh,14px) 0 0; font:600 clamp(17px,2.4vh,20px)/1.2 var(--sans); letter-spacing:.01em; }
 #giftTitle:focus { outline:none; }
-#giftTitle .name { display:block; color:var(--ink-2); }
+#giftTitle .name { display:block; color:var(--ink); font-weight:600; opacity:.82; }
 #giftTitle .wish { display:block; margin-top:6px; font-size:clamp(32px,min(11vw,5.4vh),46px); font-weight:700; line-height:1.1; letter-spacing:.01em; color:var(--ink); }
 #giftTitle b,.final-title b { font:800 1.08em/1 var(--sans); letter-spacing:-.03em; padding-right:.08em; }
 .motto { margin:8px 0 0; font:400 15px/1.5 var(--sans); letter-spacing:.01em; color:var(--ink-2); }
@@ -233,7 +234,12 @@ svg { flex-shrink:0; }
 
 /* ---------- 3. 舞台 ---------- */
 .experience { position:fixed; inset:0; width:100%; height:100%; max-width:none; max-height:none; margin:0; padding:0; border:0; overflow:hidden; background:var(--paper); color:var(--ink); }
-.experience[open] { display:block; }
+.experience[open] { display:block; animation:stageIn .55s cubic-bezier(.2,.8,.2,1); }
+@keyframes stageIn { from { opacity:0; transform:scale(.965); } }
+.letter[open] .letter-sheet { animation:sheetUp .65s cubic-bezier(.2,.9,.25,1.04); }
+.letter[open]::backdrop { animation:fadeIn .4s ease; }
+@keyframes sheetUp { from { opacity:0; transform:translateY(56px) scale(.97); } }
+@keyframes fadeIn { from { opacity:0; } }
 .experience::backdrop { background:var(--paper); }
 .stage-bg { position:absolute; inset:0; }
 .stage-bg i { position:absolute; inset:0; opacity:0; transition:opacity 1s ease; }
@@ -297,7 +303,7 @@ svg { flex-shrink:0; }
 .joy-ghost { stroke:rgba(0,0,0,.16); stroke-width:1.5; stroke-dasharray:2 6; stroke-linecap:round; }
 .joy-area { fill:url(#joyFill) !important; stroke:none; }
 .joy-curve { stroke:var(--persimmon); stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
-.graph-target { position:absolute; right:0; top:calc(60 / 210 * 100% - 22px); font:600 12px/1 var(--sans); color:var(--persimmon-deep); }
+.graph-target { position:absolute; left:7%; top:calc(60 / 210 * 100% - 20px); font:600 12px/1 var(--sans); color:var(--persimmon-deep); }
 .graph-label { position:absolute; bottom:-22px; font:500 12px/1 var(--sans); letter-spacing:.01em; color:var(--ink-3); }
 .graph-label.start { left:6%; }
 .graph-label.end { right:4%; }
@@ -310,6 +316,7 @@ svg { flex-shrink:0; }
 @keyframes ping { 0% { opacity:.55; scale:1; } 70%,100% { opacity:0; scale:2.1; } }
 .joy-scene.complete .joy-dot { cursor:default; }
 .joy-scene.complete .joy-dot span { background:var(--persimmon); box-shadow:0 0 0 6px rgba(240,102,42,.18),0 6px 14px rgba(200,80,30,.35); }
+.joy-scene .scene-note { display:none; }
 .scene-note { margin:0 0 4px; text-align:center; font:400 13px/1.5 var(--sans); letter-spacing:.01em; color:var(--ink-3); }
 
 /* 第二段：祝福圆环 */
@@ -394,7 +401,7 @@ svg { flex-shrink:0; }
 .final-cake { position:absolute; z-index:3; width:31%; left:38.5%; bottom:11%; pointer-events:none; translate:0 0 26px; }
 .final-cat { translate:0 0 18px; }
 .final-holo,.final-glare { position:absolute; inset:0; pointer-events:none; -webkit-mask:url(assets/postcard.webp) center/100% 100% no-repeat; mask:url(assets/postcard.webp) center/100% 100% no-repeat; }
-.final-holo { z-index:1; mix-blend-mode:overlay; opacity:.55; background:linear-gradient(115deg,transparent 22%,rgba(255,120,170,.65) 36%,rgba(255,226,120,.6) 44%,rgba(120,220,255,.6) 52%,rgba(190,140,255,.55) 60%,transparent 74%) var(--hx,0%) var(--hy,50%)/260% 260% no-repeat; animation:holoSweep 7s ease-in-out infinite; transition:opacity .4s; }
+.final-holo { z-index:1; mix-blend-mode:overlay; opacity:.22; background:linear-gradient(115deg,transparent 22%,rgba(255,120,170,.65) 36%,rgba(255,226,120,.6) 44%,rgba(120,220,255,.6) 52%,rgba(190,140,255,.55) 60%,transparent 74%) var(--hx,0%) var(--hy,50%)/260% 260% no-repeat; animation:holoSweep 7s ease-in-out infinite; transition:opacity .4s; }
 .final-glare { z-index:4; translate:0 0 30px; mix-blend-mode:soft-light; opacity:0; background:radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.95),rgba(255,255,255,0) 48%); transition:opacity .4s; }
 .final-card.tilting .final-holo { animation:none; opacity:.85; }
 .final-card.tilting .final-glare { opacity:.9; }

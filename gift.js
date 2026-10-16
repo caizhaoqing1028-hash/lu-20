@@ -217,10 +217,10 @@ $('nextButton').addEventListener('click', () => {
 const experience = $('experience'), letter = $('letter'), stageScroll = experience.querySelector('.stage-scroll');
 const sceneIds = ['joyScene', 'wishScene', 'starsScene', 'finalScene'];
 const SCENES = [
-  {chapter: '第一份 · 好心情', display: 'Joy', title: '今天，快乐多一点。', ask: '把橙色圆点，慢慢拖到曲线的另一端。', done: '好心情 +20%，给新的一岁加点甜。', status: '等你把快乐带过来。'},
-  {chapter: '第二份 · 新一岁的祝福', display: 'Wish', title: '把喜欢的，带进新一岁。', ask: '轻轻拨动圆环，再选一份喜欢的祝福。', done: '把喜欢的，放在离自己近一点的地方。', status: '把喜欢的事，放进新的这一岁。'},
-  {chapter: '第三份 · 点亮二十岁', display: 'Twenty', title: '一起点亮，二十岁。', ask: '点亮三颗主星，让它们变成你的二十岁。', done: '愿你把每一天，都过成喜欢的样子。', status: '每一点星光，都算数。'},
-  {chapter: '第四份 · 小猫贺卡', display: 'For you', title: '最后一份，来自小猫。', ask: '摸摸它们，还有一封信想交给你。', done: '小猫的祝福已送达，最后一封信也准备好了。', status: '摸摸橘猫或白猫吧。'}
+  {chapter: '第一份 · 好心情', display: 'Joy', title: '今天，快乐多一点。', ask: '把橙色圆点，慢慢拖到曲线的另一端。', done: '好心情 +20%，给新的一岁加点甜。', status: ''},
+  {chapter: '第二份 · 新一岁的祝福', display: 'Wish', title: '把喜欢的，带进新一岁。', ask: '轻轻拨动圆环，再选一份喜欢的祝福。', done: '把喜欢的，放在离自己近一点的地方。', status: ''},
+  {chapter: '第三份 · 点亮二十岁', display: 'Twenty', title: '一起点亮，二十岁。', ask: '点亮三颗主星，让它们变成你的二十岁。', done: '愿你把每一天，都过成喜欢的样子。', status: ''},
+  {chapter: '第四份 · 小猫贺卡', display: 'For you', title: '最后一份，来自小猫。', ask: '摸摸它们，还有一封信想交给你。', done: '小猫的祝福已送达，最后一封信也准备好了。', status: ''}
 ];
 const freshState = () => ({scene: 0, done: [false, false, false, false], joy: 0, wish: null, rotation: 0, stars: [false, false, false], pet: false});
 let state = freshState(), sceneGen = 0, sceneBusy = false, letterTrigger = null;
@@ -524,7 +524,7 @@ function buildGlyph() {
     if (pts.length < 50) return null;
     const xs = pts.map(p => p[0]).sort((a, b) => a - b), cut1 = xs[Math.floor(xs.length / 3)], cut2 = xs[Math.floor(xs.length * 2 / 3)];
     const parts = pts.map(([x, y], i) => {
-      const a = rand() * Math.PI * 2, r = 10 + Math.pow(rand(), .7) * 52;
+      const a = rand() * Math.PI * 2, r = 6 + Math.pow(rand(), 1.4) * 38;
       return {hx: x, hy: y, g: x < cut1 ? 0 : x < cut2 ? 1 : 2, ox: Math.cos(a) * r, oy: Math.sin(a) * r * .8, delay: rand(), size: 1.3 + rand() * 2.2, phase: rand() * 6.28, bend: (rand() - .5) * 2, ember: i % 11 === 0};
     });
     const dust = Array.from({length: 90}, () => ({x: rand(), y: rand(), s: rand() < .85 ? .8 : 1.5, a: .15 + rand() * .45, p: rand() * 6.28}));
@@ -575,8 +575,8 @@ function drawStars() {
       if (d < R) { const push = Math.pow(1 - d / R, 3) * 34 * repel.k; x += dx / d * push; y += dy / d * push; }
     }
     const twinkle = still ? .85 : .6 + .4 * Math.sin(t * .0024 + p.phase);
-    c.globalAlpha = (lit[p.g] ? .5 + .5 * e : .22) * twinkle;
-    const r = p.size * (lit[p.g] ? 1 + .9 * Math.sin(e * Math.PI) : .8);
+    c.globalAlpha = (lit[p.g] ? .5 + .5 * e : .12) * twinkle;
+    const r = p.size * (lit[p.g] ? 1 + .9 * Math.sin(e * Math.PI) : .6);
     c.drawImage(p.ember ? emberSprite : goldSprite, x - r * 1.6, y - r * 1.6, r * 3.2, r * 3.2);
   }
   // 绕着 20 的流星
@@ -671,7 +671,7 @@ function beginDepth() {
 /* --- 第四段：最后的小猫贺卡 --- */
 const finalCard = $('finalCard');
 function enterFinal() {
-  $('finalCatMessage').textContent = state.pet ? $('finalCatMessage').textContent : '摸摸小猫，收下最后一份祝福。';
+  if (!state.pet) $('finalCatMessage').textContent = '';
   if (state.pet) $('stageStatus').textContent = '最后一封信，等你拆开。';
   [$('finalCatMessage'), finalCard.closest('.final-scene').querySelector('.final-title'), finalCard.closest('.final-scene').querySelector('.final-blessing')].forEach((el, k) => revealCopy(el, 520 + k * 140));
 }
@@ -699,7 +699,7 @@ finalCard.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') un
 finalCard.addEventListener('pointercancel', untiltCard);
 $('restartExperience').addEventListener('click', () => {
   state = freshState(); groups.fill(0); fullTime = 0;
-  setCopy($('finalCatMessage'), '摸摸小猫，收下最后一份祝福。'); renderScene();
+  setCopy($('finalCatMessage'), ''); renderScene();
 });
 
 /* ================= 4. 最后一封信 ================= */
