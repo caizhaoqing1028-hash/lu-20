@@ -742,46 +742,47 @@ document.addEventListener('pointerdown', lightGlass, {passive: true});
 document.addEventListener('pointerout', dimGlass, {passive: true});
 document.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') dimGlass({target: e.target, relatedTarget: null}); }, {passive: true});
 
-/* ================= 背景音乐：拆信时淡入，音量 10% ================= */
-// iPhone 不允许网页直接改 audio.volume，所以用 Web Audio 的增益节点控制音量。
-const MUSIC_VOLUME = .1;
-const music = {ctx: null, gain: null, source: null, on: true, started: false, ready: false};
+/* ================= 背景音乐：拆信时开始 ================= */
+// 用普通的 <audio> 媒体播放：iPhone 的静音开关不会把它静音（Web Audio 会）。
+// iPhone 不允许网页改 audio.volume，所以音量已经直接调进音频文件里（约 -10 dB）。
+const music = {el: null, on: true, started: false};
 const musicButtons = [...document.querySelectorAll('.music-toggle')];
-function musicFade(value, seconds) {
-  if (!music.gain) return;
-  const g = music.gain.gain, now = music.ctx.currentTime;
-  g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(value, now + seconds);
+function musicEl() {
+  if (!music.el) {
+    const a = new Audio();
+    a.src = 'assets/music.mp3'; a.loop = true; a.preload = 'auto'; a.setAttribute('playsinline', ''); a.setAttribute('webkit-playsinline', '');
+    for (const type of ['playing', 'pause', 'waiting']) a.addEventListener(type, renderMusicButtons);
+    music.el = a;
+  }
+  return music.el;
 }
 function renderMusicButtons() {
-  const playing = music.on && music.ready && !isAway();
+  const playing = music.on && !!music.el && !music.el.paused && !isAway();
   musicButtons.forEach(b => { b.setAttribute('aria-pressed', String(music.on)); b.setAttribute('aria-label', music.on ? '背景音乐：开，点一下静音' : '背景音乐：关，点一下播放'); b.classList.toggle('playing', playing); });
 }
-function startMusic() { // 必须在用户的点击或滑动里调用
-  if (music.started) return;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return;
-  music.started = true;
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
-  music.ctx = new AC(); music.gain = music.ctx.createGain(); music.gain.gain.value = 0; music.gain.connect(music.ctx.destination);
-  music.ctx.resume?.();
-  fetch('assets/music.mp3').then(r => r.arrayBuffer()).then(data => new Promise((ok, no) => music.ctx.decodeAudioData(data, ok, no))).then(buffer => {
-    music.source = music.ctx.createBufferSource(); music.source.buffer = buffer; music.source.loop = true; music.source.connect(music.gain); music.source.start();
-    music.ready = true; syncMusic(2.8);
-  }).catch(() => { music.started = false; });
+// 页面打开后先在后台把音乐下载好（只下载、不播放）
+addEventListener('load', () => setTimeout(() => { try { musicEl().load(); } catch {} }, 1000), {once: true});
+function startMusic() { // 必须在用户的点击、滑动里同步调用
+  if (music.started || !music.on) return;
+  music.started = true; syncMusic();
 }
-function syncMusic(fade = .8) {
+function syncMusic() {
   renderMusicButtons();
-  if (!music.ready) return;
-  if (music.on && !isAway()) { music.ctx.resume?.(); musicFade(MUSIC_VOLUME, fade); }
-  else { musicFade(0, .35); clearTimeout(music.suspendTimer); music.suspendTimer = setTimeout(() => { if (!(music.on && !isAway())) music.ctx.suspend?.(); }, 400); }
+  if (!music.started) return;
+  const a = musicEl();
+  if (music.on && !isAway()) {
+    const playing = a.play();
+    if (playing) playing.catch(() => { music.started = false; renderMusicButtons(); }); // 没被允许时，下一次点击再试
+  } else a.pause();
 }
 musicButtons.forEach(b => b.addEventListener('click', () => {
   music.on = !music.on;
-  if (music.on && !music.started) startMusic(); else syncMusic();
-  renderMusicButtons();
+  if (music.on) { music.started = true; syncMusic(); } else syncMusic();
 }));
-// 直接从 #gift 进入时，第一次点击页面再开始播放
-document.addEventListener('click', e => { if (!music.started && entrance.hidden && music.on && !e.target.closest('.music-toggle')) startMusic(); }, true);
+// 兜底：若拆信那一下没能出声（或直接从 #gift 进入），之后任何一次触摸、点击都会把音乐接上
+for (const type of ['touchend', 'click']) document.addEventListener(type, e => {
+  if (music.on && (entrance.hidden || locked) && (!music.el || music.el.paused) && !isAway() && !(e.target instanceof Element && e.target.closest('.music-toggle'))) { music.started = true; syncMusic(); }
+}, true);
 
 /* ================= 全局状态同步 ================= */
 function syncDialogs() { body.classList.toggle('dialog-open', experience.open || letter.open); syncActivity(); }
