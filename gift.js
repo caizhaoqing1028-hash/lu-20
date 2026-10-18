@@ -454,7 +454,8 @@ function flyToken(from, toEl, look, landScale) {
     ], {duration: s1 < 1 ? 700 : 820, easing: 'cubic-bezier(.45,0,.2,1)'}).finished.catch(() => {}).then(() => {
       dot.remove();
       if (toEl === orbit.querySelector('.orbit-core b')) bloomCore();
-      toEl.animate([{transform: 'scale(1)'}, {transform: 'scale(1.08)', offset: .35}, {transform: 'scale(1)'}], {duration: 520, easing: 'cubic-bezier(.3,1.5,.5,1)'});
+      // 只动 scale，不覆盖元素自己的 transform（贺卡本来就斜着 -3°，覆盖后会突然摆正再弹回去）
+      toEl.animate([{scale: '1'}, {scale: toEl === finalCard ? '1.03' : '1.08', offset: .35}, {scale: '1'}], {duration: 520, easing: 'cubic-bezier(.3,1.5,.5,1)'});
     });
   });
 }
