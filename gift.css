@@ -261,6 +261,7 @@ svg { flex-shrink:0; }
 .bg-dawn { background:radial-gradient(100% 45% at 50% 0%,rgba(255,190,150,.5),transparent 72%),radial-gradient(70% 35% at 100% 70%,rgba(255,180,200,.22),transparent 70%),var(--paper); }
 .experience[data-scene="0"] .bg-joy,.experience[data-scene="1"] .bg-wish,.experience[data-scene="2"] .bg-night,.experience[data-scene="3"] .bg-dawn { opacity:1; z-index:1; }
 .stage-morph { position:absolute; inset:0; z-index:6; pointer-events:none; opacity:0; background:linear-gradient(100deg,var(--g1),#ff6a2b 55%,var(--g2)); }
+.stage-morph-label { position:fixed; display:grid; place-items:center; padding-right:18px; color:#fff; font:600 16px/1 var(--sans); letter-spacing:.02em; }
 .stage-token { position:fixed; z-index:8; left:0; top:0; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; pointer-events:none; }
 .depth-canvas { position:absolute; inset:0; z-index:5; width:100%; height:100%; pointer-events:none; }
 .stage { position:relative; z-index:1; display:flex; flex-direction:column; width:100%; max-width:480px; height:100%; margin:0 auto; padding:max(4px,env(safe-area-inset-top)) 0 max(12px,env(safe-area-inset-bottom)); transition:color .5s .35s; }

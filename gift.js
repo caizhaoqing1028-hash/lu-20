@@ -327,8 +327,14 @@ function openExperience() {
   const from = reduced.matches ? null : buttonInset();
   experience.showModal(); stageVisited = true; syncDialogs(); renderScene();
   if (!from) return;
-  experience.animate([{clipPath: from}, {clipPath: 'inset(0px 0px 0px 0px round 0px)'}], {duration: 720, easing: 'cubic-bezier(.32,.0,.12,1)'});
-  morphLayer.animate([{opacity: 1}, {opacity: 1, offset: .25}, {opacity: 0}], {duration: 780, easing: 'ease-out'});
+  // 按钮上的文字留在原位，随扩展淡出
+  const r = $('nextButton').getBoundingClientRect(), label = document.createElement('span');
+  label.className = 'stage-morph-label'; label.textContent = $('nextLabel').textContent;
+  Object.assign(label.style, {left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px'});
+  morphLayer.replaceChildren(label);
+  label.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'scale(1.06)'}], {duration: 260, easing: 'ease-out', fill: 'forwards'});
+  experience.animate([{clipPath: from}, {clipPath: 'inset(0px 0px 0px 0px round 0px)'}], {duration: 620, easing: 'cubic-bezier(.45,0,.15,1)'});
+  morphLayer.animate([{opacity: 1}, {opacity: 1, offset: .62}, {opacity: 0}], {duration: 900, easing: 'ease-out'});
 }
 let closingStage = false;
 function closeExperience() {
@@ -336,9 +342,10 @@ function closeExperience() {
   const to = reduced.matches ? null : buttonInset();
   if (!to) { experience.close(); return; }
   closingStage = true;
-  morphLayer.animate([{opacity: 0}, {opacity: 1, offset: .6}, {opacity: 1}], {duration: 520, easing: 'ease-in'});
-  const a = experience.animate([{clipPath: 'inset(0px 0px 0px 0px round 0px)'}, {clipPath: to}], {duration: 560, easing: 'cubic-bezier(.5,0,.6,1)'});
-  a.finished.catch(() => {}).then(() => { closingStage = false; experience.close(); });
+  morphLayer.replaceChildren();
+  morphLayer.animate([{opacity: 0}, {opacity: 1, offset: .3}, {opacity: 1}], {duration: 640, easing: 'ease-out', fill: 'forwards'});
+  const a = experience.animate([{clipPath: 'inset(0px 0px 0px 0px round 0px)'}, {clipPath: 'inset(0px 0px 0px 0px round 0px)', offset: .3}, {clipPath: to}], {duration: 640, easing: 'cubic-bezier(.45,0,.15,1)'});
+  a.finished.catch(() => {}).then(() => { closingStage = false; experience.close(); morphLayer.getAnimations().forEach(x => x.cancel()); });
 }
 experience.addEventListener('close', () => {
   cancelScene(); syncDialogs();
