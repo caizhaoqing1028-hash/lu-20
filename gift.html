@@ -458,7 +458,7 @@ svg { flex-shrink:0; }
 .postmark text { fill:var(--persimmon); font:600 12px/1 Georgia,serif; text-anchor:middle; letter-spacing:.5px; }
 
 /* 提示、礼花 */
-.toast { position:fixed; z-index:60; left:50%; bottom:max(28px,calc(env(safe-area-inset-bottom) + 14px)); translate:-50% 14px; max-width:calc(100% - 40px); padding:12px 22px; border-radius:24px; font:500 14px/1.5 var(--sans); letter-spacing:.04em; color:var(--ink); text-align:center; opacity:0; pointer-events:none; transition:opacity .3s,translate .4s var(--ease-out); }
+.toast { position:fixed; z-index:60; left:50%; bottom:max(96px,calc(env(safe-area-inset-bottom) + 84px)); translate:-50% 14px; max-width:calc(100% - 40px); padding:12px 22px; border-radius:24px; font:500 14px/1.5 var(--sans); letter-spacing:.04em; color:var(--ink); text-align:center; opacity:0; pointer-events:none; transition:opacity .3s,translate .4s var(--ease-out); }
 .toast.show { opacity:1; translate:-50% 0; }
 .confetti-layer { position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:none; }
 .gift { position:relative; z-index:1; }
@@ -522,7 +522,7 @@ body.dialog-open .paper-light i { animation-play-state:paused !important; }
 .in-frame .gift { padding-bottom:30px; }
 .in-frame .stage { padding-bottom:28px; }
 .in-frame .letter { max-height:min(calc(100% - 52px),780px); margin-bottom:34px; }
-.in-frame .toast { bottom:42px; }
+.in-frame .toast { bottom:110px; }
 </style>
 </head>
 <body class="entry-active">
@@ -965,10 +965,11 @@ function fwFrame(now) {
   c.globalAlpha = 1;
   if (fw.parts.length) fw.raf = requestAnimationFrame(fwFrame); else c.clearRect(0, 0, fw.w, fw.h);
 }
-function confetti(count = 5) {
+function confetti(count = 10) {
   if (reduced.matches) return;
   fwSize();
-  for (let i = 0; i < count; i++) setTimeout(() => fwBurst(fw.w * (.18 + Math.random() * .64), fw.h * (.08 + Math.random() * .36), .85 + Math.random() * .45), i * 260 + Math.random() * 120);
+  // 分几波接连绽放，铺满上半屏
+  for (let i = 0; i < count; i++) setTimeout(() => fwBurst(fw.w * (.1 + Math.random() * .8), fw.h * (.06 + Math.random() * .46), .8 + Math.random() * .55), i * 190 + Math.random() * 140);
 }
 addEventListener('resize', () => { if (fw.parts.length) fwSize(); });
 function renderStepper() {
@@ -980,7 +981,7 @@ function renderStepper() {
 document.querySelectorAll('#postcard .cat').forEach(cat => cat.addEventListener('click', () => {
   pet(cat); setCopy($('petHint'), cat.classList.contains('orange') ? '橘猫：今天的好运，全部送给璐。' : '白猫：喵，生日快乐呀！'); revealCopy($('petHint'));
 }));
-$('confettiButton').addEventListener('click', () => { confetti(); toast('生日快乐，璐！'); });
+$('confettiButton').addEventListener('click', () => { confetti(16); toast('生日快乐，璐！'); });
 $('nextButton').addEventListener('click', () => {
   if (stepBusy) return;
   if (step === 2) { openExperience(); return; }
@@ -999,7 +1000,7 @@ $('nextButton').addEventListener('click', () => {
       cake.animate([{filter: 'brightness(1)'}, {filter: 'brightness(1.25)', offset: .3}, {filter: 'brightness(1)'}], {duration: 900, easing: 'ease-out'});
     }
   }
-  confetti(step === 2 ? 6 : 4);
+  confetti(step === 2 ? 14 : 9);
   revealCopy($('stepTitle')); revealCopy($('stepDescription'), 160);
   setTimeout(() => { stepBusy = false; }, 500); // 快速连点不会跳过祝福
 });

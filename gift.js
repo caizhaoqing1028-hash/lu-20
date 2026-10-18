@@ -215,10 +215,11 @@ function fwFrame(now) {
   c.globalAlpha = 1;
   if (fw.parts.length) fw.raf = requestAnimationFrame(fwFrame); else c.clearRect(0, 0, fw.w, fw.h);
 }
-function confetti(count = 5) {
+function confetti(count = 10) {
   if (reduced.matches) return;
   fwSize();
-  for (let i = 0; i < count; i++) setTimeout(() => fwBurst(fw.w * (.18 + Math.random() * .64), fw.h * (.08 + Math.random() * .36), .85 + Math.random() * .45), i * 260 + Math.random() * 120);
+  // 分几波接连绽放，铺满上半屏
+  for (let i = 0; i < count; i++) setTimeout(() => fwBurst(fw.w * (.1 + Math.random() * .8), fw.h * (.06 + Math.random() * .46), .8 + Math.random() * .55), i * 190 + Math.random() * 140);
 }
 addEventListener('resize', () => { if (fw.parts.length) fwSize(); });
 function renderStepper() {
@@ -230,7 +231,7 @@ function renderStepper() {
 document.querySelectorAll('#postcard .cat').forEach(cat => cat.addEventListener('click', () => {
   pet(cat); setCopy($('petHint'), cat.classList.contains('orange') ? '橘猫：今天的好运，全部送给璐。' : '白猫：喵，生日快乐呀！'); revealCopy($('petHint'));
 }));
-$('confettiButton').addEventListener('click', () => { confetti(); toast('生日快乐，璐！'); });
+$('confettiButton').addEventListener('click', () => { confetti(16); toast('生日快乐，璐！'); });
 $('nextButton').addEventListener('click', () => {
   if (stepBusy) return;
   if (step === 2) { openExperience(); return; }
@@ -249,7 +250,7 @@ $('nextButton').addEventListener('click', () => {
       cake.animate([{filter: 'brightness(1)'}, {filter: 'brightness(1.25)', offset: .3}, {filter: 'brightness(1)'}], {duration: 900, easing: 'ease-out'});
     }
   }
-  confetti(step === 2 ? 6 : 4);
+  confetti(step === 2 ? 14 : 9);
   revealCopy($('stepTitle')); revealCopy($('stepDescription'), 160);
   setTimeout(() => { stepBusy = false; }, 500); // 快速连点不会跳过祝福
 });
