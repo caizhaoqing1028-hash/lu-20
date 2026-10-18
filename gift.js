@@ -183,19 +183,44 @@ function pet(cat) {
   cat._petTimer = setTimeout(() => cat.classList.remove('pet'), 1300);
 }
 function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').classList.add('show'); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2400); }
-function confetti() {
-  clearTimeout(confettiTimer); const layer = $('confettiLayer'); layer.replaceChildren();
-  if (reduced.matches) return;
-  const colors = ['#ff6a2b', '#ff4d6d', '#ffb15e', '#7fa275', '#f5d38f', '#ffffff'];
-  for (let i = 0; i < 46; i++) {
-    const el = document.createElement('span'); el.className = 'confetti' + (i % 4 === 0 ? ' round' : '');
-    el.style.left = Math.random() * 100 + '%'; el.style.background = colors[i % colors.length];
-    el.style.setProperty('--d', (2.6 + Math.random() * 2) + 's'); el.style.setProperty('--x', (Math.random() * 180 - 90) + 'px'); el.style.setProperty('--r', (Math.random() * 900 - 450) + 'deg');
-    el.style.animationDelay = Math.random() * .35 + 's';
-    el.addEventListener('animationend', () => el.remove(), {once: true}); layer.appendChild(el);
+// 苹果风格的点阵烟花：画在页面内容后面，透过玻璃按钮能看到
+const fw = {canvas: $('confettiLayer'), ctx: null, parts: [], raf: 0, last: 0, w: 0, h: 0};
+try { fw.ctx = fw.canvas.getContext('2d'); } catch { fw.ctx = null; }
+function fwSize() { const r = Math.min(devicePixelRatio || 1, 2); fw.w = innerWidth; fw.h = innerHeight; fw.canvas.width = Math.round(fw.w * r); fw.canvas.height = Math.round(fw.h * r); fw.ctx?.setTransform(r, 0, 0, r, 0, 0); }
+const FW_PALETTES = [['#ff5d8f', '#ff9ab8'], ['#ff7a2e', '#ffc062'], ['#2fbf8f', '#8fe0c3'], ['#ffb400', '#ffd96a'], ['#ff4d6d', '#ff8a3d'], ['#8c7bff', '#c4b8ff']];
+function fwBurst(x, y, size = 1) {
+  if (!fw.ctx || reduced.matches) return;
+  if (!fw.w) fwSize();
+  const [c1, c2] = FW_PALETTES[Math.floor(Math.random() * FW_PALETTES.length)], n = Math.round(120 * size);
+  for (let i = 0; i < n; i++) {
+    // 球面上均匀取点，投影到平面：边缘更密，像一团立体的点阵
+    const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = Math.sqrt(1 - u * u), speed = (3.4 + Math.random() * .7) * size;
+    fw.parts.push({x, y, vx: Math.cos(a) * r * speed, vy: Math.sin(a) * r * speed, life: 0, max: 1300 + Math.random() * 700, s: 1.8 + Math.random() * 1.8, c: i % 3 ? c1 : c2, tw: Math.random() * 6});
   }
-  confettiTimer = setTimeout(() => layer.replaceChildren(), 6000);
+  if (!fw.raf) { fw.last = 0; fw.raf = requestAnimationFrame(fwFrame); }
 }
+function fwFrame(now) {
+  fw.raf = 0;
+  const dt = fw.last ? Math.min(now - fw.last, 48) : 16; fw.last = now;
+  if (isAway()) { fw.raf = requestAnimationFrame(fwFrame); return; }
+  const c = fw.ctx; c.clearRect(0, 0, fw.w, fw.h);
+  const k = dt / 16, drag = Math.pow(.955, k);
+  fw.parts = fw.parts.filter(p => (p.life += dt) < p.max);
+  for (const p of fw.parts) {
+    p.vx *= drag; p.vy = p.vy * drag + .018 * k; p.x += p.vx * k; p.y += p.vy * k;
+    const t = p.life / p.max, fade = t < .1 ? t / .1 : 1 - Math.pow((t - .1) / .9, 1.6);
+    c.globalAlpha = Math.max(0, fade) * (.75 + .25 * Math.sin(p.life * .02 + p.tw));
+    c.fillStyle = p.c; c.beginPath(); c.arc(p.x, p.y, p.s * (1 - t * .35), 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
+  if (fw.parts.length) fw.raf = requestAnimationFrame(fwFrame); else c.clearRect(0, 0, fw.w, fw.h);
+}
+function confetti(count = 5) {
+  if (reduced.matches) return;
+  fwSize();
+  for (let i = 0; i < count; i++) setTimeout(() => fwBurst(fw.w * (.18 + Math.random() * .64), fw.h * (.08 + Math.random() * .36), .85 + Math.random() * .45), i * 260 + Math.random() * 120);
+}
+addEventListener('resize', () => { if (fw.parts.length) fwSize(); });
 function renderStepper() {
   document.querySelectorAll('.stepper li').forEach((li, i) => {
     li.classList.toggle('current', i === step); li.classList.toggle('done', i < step);
@@ -213,7 +238,18 @@ $('nextButton').addEventListener('click', () => {
   const s = steps[step];
   setCopy($('stepTitle'), s.title); setCopy($('stepDescription'), s.desc); $('stepDescription').hidden = !s.desc;
   $('nextLabel').textContent = s.label; postcard.dataset.step = String(step);
-  renderStepper(); confetti();
+  renderStepper();
+  if (!reduced.matches) {
+    const box = postcard.querySelector('.gift-box'), cake = postcard.querySelector(step === 1 ? '.cake:not(.lit)' : '.cake.lit'), br = box.getBoundingClientRect();
+    if (step === 1) {
+      box.animate([{transform: 'none', opacity: 1}, {transform: 'translateY(4%) scale(1.1,.88)', opacity: 1, offset: .25}, {transform: 'translateY(-34%) scale(.55) rotate(-8deg)', opacity: 0}], {duration: 560, easing: 'cubic-bezier(.3,0,.3,1)'});
+      cake.animate([{transform: 'translateY(26%) scale(.5)', opacity: 0}, {opacity: 1, offset: .3}, {transform: 'none', opacity: 1}], {duration: 760, delay: 240, easing: 'cubic-bezier(.3,1.5,.5,1)', fill: 'backwards'});
+      setTimeout(() => fwBurst(br.left + br.width / 2, br.top + br.height * .3, .45), 300);
+    } else {
+      cake.animate([{filter: 'brightness(1)'}, {filter: 'brightness(1.25)', offset: .3}, {filter: 'brightness(1)'}], {duration: 900, easing: 'ease-out'});
+    }
+  }
+  confetti(step === 2 ? 6 : 4);
   revealCopy($('stepTitle')); revealCopy($('stepDescription'), 160);
   setTimeout(() => { stepBusy = false; }, 500); // 快速连点不会跳过祝福
 });
@@ -269,8 +305,29 @@ function renderScene(focus = true, dir = 0) {
   syncActivity();
   if (focus) $('stageTitle').focus({preventScroll: true});
 }
-function openExperience() { if (experience.open) return; experience.showModal(); stageVisited = true; syncDialogs(); renderScene(); }
-function closeExperience() { if (experience.open) experience.close(); }
+const morphLayer = experience.querySelector('.stage-morph');
+function buttonInset() {
+  const r = $('nextButton').getBoundingClientRect(), W = innerWidth, H = innerHeight;
+  return r.width ? `inset(${r.top}px ${W - r.right}px ${H - r.bottom}px ${r.left}px round ${r.height / 2}px)` : null;
+}
+function openExperience() {
+  if (experience.open) return;
+  const from = reduced.matches ? null : buttonInset();
+  experience.showModal(); stageVisited = true; syncDialogs(); renderScene();
+  if (!from) return;
+  experience.animate([{clipPath: from}, {clipPath: 'inset(0px 0px 0px 0px round 0px)'}], {duration: 720, easing: 'cubic-bezier(.32,.0,.12,1)'});
+  morphLayer.animate([{opacity: 1}, {opacity: 1, offset: .25}, {opacity: 0}], {duration: 780, easing: 'ease-out'});
+}
+let closingStage = false;
+function closeExperience() {
+  if (!experience.open || closingStage) return;
+  const to = reduced.matches ? null : buttonInset();
+  if (!to) { experience.close(); return; }
+  closingStage = true;
+  morphLayer.animate([{opacity: 0}, {opacity: 1, offset: .6}, {opacity: 1}], {duration: 520, easing: 'ease-in'});
+  const a = experience.animate([{clipPath: 'inset(0px 0px 0px 0px round 0px)'}, {clipPath: to}], {duration: 560, easing: 'cubic-bezier(.5,0,.6,1)'});
+  a.finished.catch(() => {}).then(() => { closingStage = false; experience.close(); });
+}
 experience.addEventListener('close', () => {
   cancelScene(); syncDialogs();
   if (stageVisited && step === 2) $('nextLabel').textContent = '继续生日惊喜';
@@ -288,10 +345,39 @@ function nudgeScene() {
   if (i === 2) starButtons.filter((_, k) => !state.stars[k]).forEach(b => run('scene', b.firstElementChild, [{scale: '1'}, {scale: '1.6'}, {scale: '1'}], {duration: 700, easing: 'cubic-bezier(.3,1.5,.5,1)'}));
   if (i === 3) document.querySelectorAll('.final-cat').forEach((cat, k) => run('scene', cat, wiggle, {duration: 800, delay: k * 120, easing: 'ease-in-out'}));
 }
+function centerOf(el) { const r = el.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width}; }
+function flyToken(from, toEl, look, landScale) {
+  if (reduced.matches || !from || !toEl) return;
+  requestAnimationFrame(() => {
+    const to = centerOf(toEl); if (!to.w) return;
+    const dot = document.createElement('i'); dot.className = 'stage-token'; Object.assign(dot.style, look); experience.appendChild(dot);
+    const dx = to.x - from.x, dy = to.y - from.y, s0 = Math.max(.6, from.w / 28), s1 = landScale ?? .5;
+    dot.animate([
+      {transform: `translate(${from.x}px,${from.y}px) scale(${s0})`, opacity: 1},
+      {transform: `translate(${from.x + dx * .5 - dy * .18}px,${from.y + dy * .5 - Math.abs(dx) * .25 - 40}px) scale(${(s0 + s1) / 2 * .8})`, opacity: 1, offset: .5},
+      {transform: `translate(${to.x}px,${to.y}px) scale(${s1})`, opacity: .2}
+    ], {duration: 820, easing: 'cubic-bezier(.45,0,.2,1)'}).finished.catch(() => {}).then(() => {
+      dot.remove();
+      toEl.animate([{transform: 'scale(1)'}, {transform: 'scale(1.08)', offset: .35}, {transform: 'scale(1)'}], {duration: 520, easing: 'cubic-bezier(.3,1.5,.5,1)'});
+    });
+  });
+}
+const TOKEN_LOOKS = [
+  {background: 'radial-gradient(circle at 35% 30%,#ffb27a,#ff6a2b 60%,#ff4d6d)', boxShadow: '0 0 24px rgba(255,106,43,.6)'},
+  {background: 'radial-gradient(circle,#fff6d8,#ffd27a 45%,#ff9a5a)', boxShadow: '0 0 30px rgba(255,210,122,.9)'},
+  {background: 'radial-gradient(circle,#fffaf0,#ffe2a8 40%,rgba(255,180,90,.2) 75%,transparent)', boxShadow: '0 0 40px rgba(255,214,140,.9)'}
+];
 $('stageNext').addEventListener('click', () => {
   const i = state.scene; if (sceneBusy) return;
   if (!state.done[i]) { nudgeScene(); return; }
-  if (i < 3) { state.scene++; renderScene(true, 1); if (state.scene === 2) beginDepth(); }
+  if (i < 3) {
+    const source = [joyDot.firstElementChild, $('wishReveal').querySelector('.sun'), starCanvas][i];
+    const from = source && !source.closest('[hidden]') ? centerOf(source) : null;
+    if (i === 2 && from) from.w = 60;
+    state.scene++; renderScene(true, 1); if (state.scene === 2) beginDepth();
+    const target = [null, orbit.querySelector('.orbit-core b'), starButtons[1], finalCard][state.scene];
+    flyToken(from, target, TOKEN_LOOKS[i], [5, .7, 9][i]);
+  }
   else showLetter($('stageNext'));
 });
 
@@ -813,7 +899,7 @@ document.addEventListener('visibilitychange', syncActivity);
 addEventListener('pagehide', e => { pageSuspended = true; syncActivity(); if (!e.persisted) { clearTimeout(toastTimer); clearTimeout(confettiTimer); } });
 addEventListener('pageshow', () => { pageSuspended = false; syncActivity(); });
 reduced.addEventListener('change', () => {
-  if (reduced.matches) { if (opening) finishEntrance(); $('confettiLayer').replaceChildren(); }
+  if (reduced.matches) { if (opening) finishEntrance(); fw.parts.length = 0; }
   if (experience.open) renderScene(false);
 });
 addEventListener('hashchange', () => { if (location.hash === '#gift' && !entrance.hidden) finishEntrance(); });
