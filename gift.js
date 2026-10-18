@@ -145,8 +145,8 @@ slider.addEventListener('pointermove', e => {
   if (!reduced.matches) {
     const v = drag.lastT ? (e.clientX - drag.lastX) / Math.max(8, e.timeStamp - drag.lastT) : 0;
     drag.v = (drag.v || 0) * .6 + v * .4; drag.lastX = e.clientX; drag.lastT = e.timeStamp;
-    const k = Math.min(.22, Math.abs(drag.v) * .35);
-    knob.style.scale = `${(1.22 + k).toFixed(3)} ${(1.1 - k * .45).toFixed(3)}`;
+    const k = Math.min(.12, Math.abs(drag.v) * .2);
+    knob.style.scale = `${(1.14 + k).toFixed(3)} ${(1.14 - k * .5).toFixed(3)}`;
   }
 });
 slider.addEventListener('pointerup', e => {
@@ -376,11 +376,25 @@ function flyToken(from, toEl, look, landScale) {
       {transform: `translate(${from.x}px,${from.y}px) scale(${s0})`, opacity: 1},
       {transform: `translate(${from.x + dx * .5 - dy * .18}px,${from.y + dy * .5 - Math.abs(dx) * .25 - 40}px) scale(${(s0 + s1) / 2 * .8})`, opacity: 1, offset: .5},
       {transform: `translate(${to.x}px,${to.y}px) scale(${s1})`, opacity: .2}
-    ], {duration: 820, easing: 'cubic-bezier(.45,0,.2,1)'}).finished.catch(() => {}).then(() => {
+    ], {duration: s1 < 1 ? 700 : 820, easing: 'cubic-bezier(.45,0,.2,1)'}).finished.catch(() => {}).then(() => {
       dot.remove();
+      if (toEl === orbit.querySelector('.orbit-core b')) bloomCore();
       toEl.animate([{transform: 'scale(1)'}, {transform: 'scale(1.08)', offset: .35}, {transform: 'scale(1)'}], {duration: 520, easing: 'cubic-bezier(.3,1.5,.5,1)'});
     });
   });
+}
+// 光点落进"20"：中心泛起一圈光，光晕亮一下
+function bloomCore() {
+  const wave = document.createElement('i'); wave.className = 'core-wave'; orbit.appendChild(wave);
+  wave.animate([{opacity: .9, scale: '.92'}, {opacity: 0, scale: '1.9'}], {duration: 900, easing: 'cubic-bezier(.2,.7,.3,1)'}).finished.catch(() => {}).then(() => wave.remove());
+  orbit.querySelector('.orbit-glow').animate([{opacity: .62}, {opacity: 1, offset: .25}, {opacity: .62}], {duration: 1000, easing: 'ease-out'});
+}
+// 进入祝福圆环：表盘轻轻放大，六个词依次浮出
+function enterOrbit() {
+  if (reduced.matches) return;
+  run('scene', orbit.querySelector('.orbit-ring'), [{opacity: 0, scale: '.86'}, {opacity: 1, scale: '1'}], {duration: 700, delay: 80, easing: 'cubic-bezier(.2,.8,.25,1)', fill: 'backwards'});
+  run('scene', orbit.querySelector('.orbit-dial'), [{opacity: 0, scale: '.94'}, {opacity: 1, scale: '1'}], {duration: 800, delay: 60, easing: 'cubic-bezier(.2,.8,.25,1)', fill: 'backwards'});
+  words.forEach((w, k) => run('scene', w, [{opacity: 0, scale: '.6'}, {opacity: 1, scale: '1'}], {duration: 520, delay: 260 + k * 60, easing: 'cubic-bezier(.34,1.56,.64,1)', fill: 'backwards'}));
 }
 const TOKEN_LOOKS = [
   {background: 'radial-gradient(circle at 35% 30%,#ffb27a,#ff6a2b 60%,#ff4d6d)', boxShadow: '0 0 24px rgba(255,106,43,.6)'},
@@ -394,9 +408,9 @@ $('stageNext').addEventListener('click', () => {
     const source = [joyDot.firstElementChild, $('wishReveal').querySelector('.sun'), starCanvas][i];
     const from = source && !source.closest('[hidden]') ? centerOf(source) : null;
     if (i === 2 && from) from.w = 60;
-    state.scene++; renderScene(true, 1); if (state.scene === 2) beginDepth();
+    state.scene++; renderScene(true, 1); if (state.scene === 2) beginDepth(); if (state.scene === 1) enterOrbit();
     const target = [null, orbit.querySelector('.orbit-core b'), starButtons[1], finalCard][state.scene];
-    flyToken(from, target, TOKEN_LOOKS[i], [5, .7, 9][i]);
+    flyToken(from, target, TOKEN_LOOKS[i], [.35, .7, 9][i]);
   }
   else showLetter($('stageNext'));
 });

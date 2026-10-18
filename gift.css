@@ -128,7 +128,7 @@ svg { flex-shrink:0; }
 .switch-track::after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 45%); pointer-events:none; }
 /* 橙色随圆钮从左向右铺开，越往右越饱满 */
 .switch-fill { position:absolute; left:0; top:0; bottom:0; width:calc(100% - var(--travel) * (1 - var(--slide))); border-radius:inherit; opacity:calc(var(--slide) * 1.15);
-  background:linear-gradient(100deg,var(--g1),#ff6a2b 60%,var(--g2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
+  background:linear-gradient(100deg,#ffa25e,#ff7a33 60%,#ff6a2b); box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
 .switch-knob { position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
   background:#fff;
   box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);
@@ -138,9 +138,14 @@ svg { flex-shrink:0; }
 .switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring),background .3s,box-shadow .3s; }
 .switch.returning .switch-fill { transition:width .6s var(--spring),opacity .4s ease; }
 .switch-knob { transition:scale .45s var(--spring),background .3s,box-shadow .3s,-webkit-backdrop-filter .3s,backdrop-filter .3s; }
-.switch.dragging .switch-knob { cursor:grabbing; scale:1.22 1.1; background:rgba(255,255,255,.28);
-  -webkit-backdrop-filter:blur(1.5px) saturate(2) brightness(1.12); backdrop-filter:blur(1.5px) saturate(2) brightness(1.12);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85),inset 2px 3px 6px rgba(255,255,255,.9),inset -2px -4px 8px rgba(255,255,255,.45),0 8px 20px rgba(0,0,0,.16); }
+/* 拖动时圆钮变成一颗透明玻璃珠：透出下面的橙色，只留亮边和高光 */
+.switch-knob::before,.switch-knob::after { content:""; position:absolute; border-radius:50%; pointer-events:none; opacity:0; transition:opacity .3s ease; }
+.switch-knob::before { inset:0; background:radial-gradient(42% 24% at 38% 16%,rgba(255,255,255,.9),rgba(255,255,255,0) 75%),radial-gradient(50% 22% at 60% 92%,rgba(255,255,255,.4),transparent 75%); }
+.switch-knob::after { inset:-1px; box-shadow:inset 1.5px 1px 0 rgba(255,236,214,.9),inset -1.5px -1px 0 rgba(255,214,236,.75); }
+.switch.dragging .switch-knob { cursor:grabbing; scale:1.14; background:rgba(255,255,255,.04);
+  -webkit-backdrop-filter:brightness(1.1) saturate(1.1); backdrop-filter:brightness(1.1) saturate(1.1);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),inset 0 0 14px rgba(255,255,255,.3),0 0 0 .5px rgba(0,0,0,.05),0 10px 22px -6px rgba(140,50,20,.32); }
+.switch.dragging .switch-knob::before,.switch.dragging .switch-knob::after { opacity:1; }
 .switch.ready .switch-track { box-shadow:0 12px 28px -6px rgba(255,90,60,.5); }
 .switch.locked .knob-check { opacity:1; }
 .switch.locked .switch-knob { cursor:default; }
@@ -262,6 +267,7 @@ svg { flex-shrink:0; }
 .experience[data-scene="0"] .bg-joy,.experience[data-scene="1"] .bg-wish,.experience[data-scene="2"] .bg-night,.experience[data-scene="3"] .bg-dawn { opacity:1; z-index:1; }
 .stage-morph { position:absolute; inset:0; z-index:6; pointer-events:none; opacity:0; background:linear-gradient(100deg,var(--g1),#ff6a2b 55%,var(--g2)); }
 .stage-morph-label { position:fixed; display:grid; place-items:center; padding-right:18px; color:#fff; font:600 16px/1 var(--sans); letter-spacing:.02em; }
+.core-wave { position:absolute; inset:24%; z-index:1; border-radius:50%; pointer-events:none; border:2px solid rgba(255,138,61,.55); box-shadow:0 0 24px rgba(255,120,80,.45),inset 0 0 18px rgba(255,180,140,.4); }
 .stage-token { position:fixed; z-index:8; left:0; top:0; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; pointer-events:none; }
 .depth-canvas { position:absolute; inset:0; z-index:5; width:100%; height:100%; pointer-events:none; }
 .stage { position:relative; z-index:1; display:flex; flex-direction:column; width:100%; max-width:480px; height:100%; margin:0 auto; padding:max(4px,env(safe-area-inset-top)) 0 max(12px,env(safe-area-inset-bottom)); transition:color .5s .35s; }
