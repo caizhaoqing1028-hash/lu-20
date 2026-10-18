@@ -73,7 +73,7 @@ function setSlide(value, returning = false) {
   $('slideHint').textContent = locked ? '小猫正在送来祝福' : slide >= .9 ? '松手，拆开惊喜' : '向右滑动白色圆点';
 }
 function resetSlide() { drag = null; knob.style.scale = ''; slider.classList.remove('dragging'); if (!locked) setSlide(0, true); }
-function restorePostcard() { if (postcard.parentElement !== postcardWrap) postcardWrap.appendChild(postcard); postcardWrap.classList.remove('travelling'); }
+function restorePostcard() { if (postcard.parentElement !== postcardWrap) postcardWrap.appendChild(postcard); postcardWrap.classList.remove('travelling'); gift.classList.remove('flying'); }
 
 function showEntrance(focus = true) {
   ++openGen; opening = false; openSize = null; cancelGroup('open'); restorePostcard();
@@ -119,7 +119,7 @@ async function openGift() {
   // 同一张明信片从信封移动到礼物页的位置
   const from = postcard.getBoundingClientRect(), fromW = postcard.offsetWidth;
   gift.hidden = false; gift.inert = true; scrollTo(0, 0);
-  postcardWrap.appendChild(postcard); postcardWrap.classList.add('travelling');
+  postcardWrap.appendChild(postcard); postcardWrap.classList.add('travelling'); gift.classList.add('flying');
   const to = postcard.getBoundingClientRect(), toW = postcard.offsetWidth;
   if (!fromW || !toW) { finishEntrance(); return; }
   const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
@@ -289,7 +289,18 @@ function finishSceneCopy(status) {
 }
 function renderScene(focus = true, dir = 0) {
   cancelScene();
-  const i = state.scene, S = SCENES[i];
+  const i = state.scene, S = SCENES[i], bgs = experience.querySelectorAll('.stage-bg i'), prev = Number(experience.dataset.scene);
+  clearTimeout(renderScene.bgTimer); bgs.forEach(b => b.classList.remove('was'));
+  if (experience.open && prev !== i && bgs[prev]) {
+    bgs[prev].classList.add('was'); renderScene.bgTimer = setTimeout(() => bgs[prev].classList.remove('was'), 1150);
+    // 夜空与白天之间：新画面以圆形从光源处扩散开，避免黑白相混出灰色
+    if ((prev === 2) !== (i === 2) && !reduced.matches) {
+      const at = i === 3 ? '50% 46%' : i === 2 ? '50% 26%' : '50% 40%';
+      bgs[i].style.transition = 'none';
+      bgs[i].animate([{clipPath: `circle(0% at ${at})`}, {clipPath: `circle(150% at ${at})`}], {duration: 820, easing: 'cubic-bezier(.3,0,.15,1)'});
+      requestAnimationFrame(() => { bgs[i].style.transition = ''; });
+    }
+  }
   experience.dataset.scene = String(i);
   sceneIds.forEach((id, k) => { $(id).hidden = k !== i; });
   $('stageChapter').textContent = S.chapter;
@@ -299,9 +310,10 @@ function renderScene(focus = true, dir = 0) {
   $('stageStatus').textContent = S.status; stageScroll.scrollTop = 0;
   [enterJoy, enterWish, enterStars, enterFinal][i]();
   updateControls();
-  run('scene', $(sceneIds[i]), [{opacity: 0, transform: dir ? `translateX(${dir * 36}px)` : 'translateY(16px)'}, {opacity: 1, transform: 'none'}], {duration: dir ? 760 : 900, delay: dir ? 120 : 220, easing: 'cubic-bezier(.2,.75,.25,1)'});
-  if (dir) run('scene', experience.querySelector('.stage-heading'), [{opacity: .2, transform: `translateX(${dir * 20}px)`}, {opacity: 1, transform: 'none'}], {duration: 700, easing: 'cubic-bezier(.2,.75,.25,1)'});
-  [$('stageChapter'), display, $('stageTitle'), $('stageInstruction')].forEach((el, k) => revealCopy(el, k * 130));
+  run('scene', $(sceneIds[i]), [{opacity: 0, transform: dir ? `translateX(${dir * 36}px)` : 'translateY(16px)'}, {opacity: 1, transform: 'none'}], {duration: dir ? 640 : 900, delay: dir ? 40 : 220, easing: 'cubic-bezier(.2,.75,.25,1)'});
+  if (dir) run('scene', experience.querySelector('.stage-heading'), [{opacity: 0, transform: `translateX(${dir * 28}px)`}, {opacity: 1, transform: 'none'}], {duration: 560, easing: 'cubic-bezier(.2,.75,.25,1)'});
+  if (dir) revealCopy($('stageInstruction'), 120);
+  else [$('stageChapter'), display, $('stageTitle'), $('stageInstruction')].forEach((el, k) => revealCopy(el, k * 130));
   syncActivity();
   if (focus) $('stageTitle').focus({preventScroll: true});
 }
@@ -351,7 +363,7 @@ function flyToken(from, toEl, look, landScale) {
   requestAnimationFrame(() => {
     const to = centerOf(toEl); if (!to.w) return;
     const dot = document.createElement('i'); dot.className = 'stage-token'; Object.assign(dot.style, look); experience.appendChild(dot);
-    const dx = to.x - from.x, dy = to.y - from.y, s0 = Math.max(.6, from.w / 28), s1 = landScale ?? .5;
+    const dx = to.x - from.x, dy = to.y - from.y, s0 = Math.min(2.2, Math.max(.6, from.w / 28)), s1 = landScale ?? .5;
     dot.animate([
       {transform: `translate(${from.x}px,${from.y}px) scale(${s0})`, opacity: 1},
       {transform: `translate(${from.x + dx * .5 - dy * .18}px,${from.y + dy * .5 - Math.abs(dx) * .25 - 40}px) scale(${(s0 + s1) / 2 * .8})`, opacity: 1, offset: .5},
@@ -799,7 +811,15 @@ function showLetter(trigger) {
   letter.showModal(); $('letterBody').scrollTop = 0; syncDialogs(); $('closeLetter').focus({preventScroll: true});
   $('letterBody').querySelectorAll('p').forEach((p, i) => revealCopy(p, Math.min(120 + i * 110, 900)));
 }
-function closeLetter() { if (letter.open) letter.close(); }
+let closingLetter = false;
+function closeLetter() {
+  if (!letter.open || closingLetter) return;
+  if (reduced.matches) { letter.close(); return; }
+  closingLetter = true;
+  const sheet = letter.querySelector('.letter-sheet');
+  letter.animate([{opacity: 1}, {opacity: 0}], {duration: 320, delay: 80, easing: 'ease-in'});
+  sheet.animate([{transform: 'none'}, {transform: 'translateY(40px) scale(.97)'}], {duration: 400, easing: 'cubic-bezier(.4,0,.8,.4)'}).finished.catch(() => {}).then(() => { closingLetter = false; letter.close(); });
+}
 letter.addEventListener('close', () => { syncDialogs(); if (letterTrigger?.isConnected && !letterTrigger.closest('[hidden],[inert]')) letterTrigger.focus({preventScroll: true}); });
 letter.addEventListener('cancel', e => { e.preventDefault(); closeLetter(); });
 letter.addEventListener('click', e => {
