@@ -88,7 +88,7 @@ const knobBurst = (() => {
     // 中心的白热光核，微微闪烁
     const flick = .85 + .15 * Math.sin(now / 90) * Math.sin(now / 37);
     let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.55 + s * .25));
-    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(255,236,200,${.7 * flick})`); g.addColorStop(1, 'rgba(255,170,100,0)');
+    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(225,215,255,${.7 * flick})`); g.addColorStop(1, 'rgba(150,110,255,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, 6.283); ctx.fill();
     ctx.lineCap = 'round';
     for (const q of parts) {
@@ -99,9 +99,9 @@ const knobBurst = (() => {
       const fade = Math.min(1, q.t * 5) * (1 - Math.pow(q.t, 9)) * depth;
       if (fade < .04) continue;
       const hot = 1 - r1;
-      // 越靠近光核越白；外圈在静止时是橘色，滑动后渐渐变成白金色，压在橙色上也看得清
+      // 越靠近光核越白；外圈在静止时是紫色，滑动后渐渐变成淡紫白，压在深紫上也看得清
       const m = Math.min(1, hot * 2 + s * .9);
-      ctx.strokeStyle = `rgba(255,${138 + 112 * m | 0},${61 + 170 * m | 0},${fade})`;
+      ctx.strokeStyle = `rgba(${139 + 106 * m | 0},${92 + 148 * m | 0},${246 + 9 * m | 0},${fade})`;
       ctx.lineWidth = (.7 + .9 * depth) * (size / 74);
       ctx.beginPath(); ctx.moveTo(c + x * R * r0, c + y * R * r0); ctx.lineTo(c + x * R * r1, c + y * R * r1); ctx.stroke();
     }
@@ -114,7 +114,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) knob
 // 滑过的轨道：一格格像素光点随机闪烁，离光球越近越密越亮
 const pixels = (() => {
   const cv = document.querySelector('.switch-pixels'), ctx = cv.getContext('2d'), CELL = 6, GAP = 1.5;
-  const COLORS = ['255,255,255', '255,244,214', '255,214,120', '255,170,200', '255,236,190'];
+  const COLORS = ['255,255,255', '200,170,255', '150,120,255', '255,140,220', '130,170,255', '230,210,255'];
   let seeds = [], raf = 0, until = 0, w = 0, h = 0;
   function size() {
     const r = cv.parentElement.parentElement.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);

@@ -131,7 +131,7 @@ svg { flex-shrink:0; }
 .switch.returning .dock-copy { transition:opacity .45s ease; }
 .switch.locked .dock-copy { left:8px; right:72px; opacity:1; }
 .switch.locked .dock-title,.switch.locked .dock-hint { color:#fff; }
-.dock-title { background:linear-gradient(100deg,var(--ink) 0 38%,#ff8a3d 46%,#ffd9b0 50%,#ff8a3d 54%,var(--ink) 62%) 0 0/250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:titleSheen 3.2s cubic-bezier(.45,0,.3,1) infinite; }
+.dock-title { background:linear-gradient(100deg,var(--ink) 0 38%,#8b5cf6 46%,#e3d6ff 50%,#8b5cf6 54%,var(--ink) 62%) 0 0/250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:titleSheen 3.2s cubic-bezier(.45,0,.3,1) infinite; }
 .switch.locked .dock-title { background:none; -webkit-text-fill-color:#fff; animation:none; }
 @keyframes titleSheen { from { background-position:100% 0; } 70%,to { background-position:0 0; } }
 @media (prefers-reduced-motion:reduce) { .dock-title { animation:none; background-position:100% 0; } }
@@ -144,20 +144,20 @@ svg { flex-shrink:0; }
 .switch-track::after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 45%); pointer-events:none; }
 /* 滑过的地方铺开一片闪烁的像素光点，越靠近光球越亮 */
 .switch-fill { position:absolute; left:0; top:0; bottom:0; width:calc(100% - var(--travel) * (1 - var(--slide))); border-radius:inherit; opacity:calc(var(--slide) * 1.6); overflow:hidden;
-  background:linear-gradient(100deg,#ffc79a,#ff9150 50%,#ff6236); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -6px 14px -8px rgba(200,60,20,.35); }
+  background:linear-gradient(100deg,#2b1d5c,#3d2589 55%,#5a33c2); box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -6px 14px -8px rgba(20,10,60,.6); }
 .switch-pixels { position:absolute; inset:0; width:100%; height:100%; }
 /* 圆钮：一团会呼吸的粒子光球（光丝从中心迸出，聚在球面上） */
 .switch-knob { --glow:calc(.3 + var(--slide) * .7); position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
-  --bg:calc(1 - var(--slide) * .75); background:radial-gradient(circle,rgba(255,252,244,.95) 0 14%,rgba(255,232,206,calc(var(--bg) * .55)) 42%,rgba(255,206,170,calc(var(--bg) * .28)) 70%,rgba(255,196,160,calc(var(--bg) * .18)));
-  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),0 0 calc(10px + var(--slide) * 22px) calc(var(--slide) * 5px) rgba(255,176,104,var(--glow)),0 0 calc(var(--slide) * 48px) rgba(255,120,70,calc(var(--slide) * .5)),0 4px 12px -4px rgba(140,60,20,.22);
+  --bg:calc(1 - var(--slide) * .75); background:radial-gradient(circle,rgba(250,248,255,.95) 0 14%,rgba(222,210,255,calc(var(--bg) * .55)) 42%,rgba(190,170,255,calc(var(--bg) * .3)) 70%,rgba(170,150,250,calc(var(--bg) * .2)));
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),0 0 calc(10px + var(--slide) * 22px) calc(var(--slide) * 5px) rgba(176,150,255,var(--glow)),0 0 calc(var(--slide) * 48px) rgba(130,90,255,calc(var(--slide) * .55)),0 4px 12px -4px rgba(50,30,120,.25);
   transition:scale .45s var(--spring); }
 .knob-burst { position:absolute; left:-12%; top:-12%; width:124%; height:124%; pointer-events:none; }
 .switch-knob svg { position:relative; z-index:1; width:24px; height:24px; }
-.knob-check { fill:none; stroke:var(--persimmon); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .3s; }
+.knob-check { fill:none; stroke:#6d3fd6; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .3s; }
 .switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring); }
 .switch.returning .switch-fill { transition:width .6s var(--spring),opacity .4s ease; }
 .switch.dragging .switch-knob { cursor:grabbing; }
-.switch.ready .switch-track { box-shadow:0 12px 28px -6px rgba(255,90,60,.5); }
+.switch.ready .switch-track { box-shadow:0 12px 28px -6px rgba(110,70,230,.55); }
 
 .switch.locked .knob-check { opacity:1; }
 .switch.locked .switch-knob { cursor:default; }
@@ -844,7 +844,7 @@ const knobBurst = (() => {
     // 中心的白热光核，微微闪烁
     const flick = .85 + .15 * Math.sin(now / 90) * Math.sin(now / 37);
     let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.55 + s * .25));
-    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(255,236,200,${.7 * flick})`); g.addColorStop(1, 'rgba(255,170,100,0)');
+    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(225,215,255,${.7 * flick})`); g.addColorStop(1, 'rgba(150,110,255,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, 6.283); ctx.fill();
     ctx.lineCap = 'round';
     for (const q of parts) {
@@ -855,9 +855,9 @@ const knobBurst = (() => {
       const fade = Math.min(1, q.t * 5) * (1 - Math.pow(q.t, 9)) * depth;
       if (fade < .04) continue;
       const hot = 1 - r1;
-      // 越靠近光核越白；外圈在静止时是橘色，滑动后渐渐变成白金色，压在橙色上也看得清
+      // 越靠近光核越白；外圈在静止时是紫色，滑动后渐渐变成淡紫白，压在深紫上也看得清
       const m = Math.min(1, hot * 2 + s * .9);
-      ctx.strokeStyle = `rgba(255,${138 + 112 * m | 0},${61 + 170 * m | 0},${fade})`;
+      ctx.strokeStyle = `rgba(${139 + 106 * m | 0},${92 + 148 * m | 0},${246 + 9 * m | 0},${fade})`;
       ctx.lineWidth = (.7 + .9 * depth) * (size / 74);
       ctx.beginPath(); ctx.moveTo(c + x * R * r0, c + y * R * r0); ctx.lineTo(c + x * R * r1, c + y * R * r1); ctx.stroke();
     }
@@ -870,7 +870,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) knob
 // 滑过的轨道：一格格像素光点随机闪烁，离光球越近越密越亮
 const pixels = (() => {
   const cv = document.querySelector('.switch-pixels'), ctx = cv.getContext('2d'), CELL = 6, GAP = 1.5;
-  const COLORS = ['255,255,255', '255,244,214', '255,214,120', '255,170,200', '255,236,190'];
+  const COLORS = ['255,255,255', '200,170,255', '150,120,255', '255,140,220', '130,170,255', '230,210,255'];
   let seeds = [], raf = 0, until = 0, w = 0, h = 0;
   function size() {
     const r = cv.parentElement.parentElement.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
