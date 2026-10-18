@@ -126,27 +126,28 @@ svg { flex-shrink:0; }
   background:linear-gradient(180deg,rgba(120,120,128,.16),rgba(120,120,128,.08));
   box-shadow:inset 0 1px 3px rgba(0,0,0,.08),inset 0 -1px 0 rgba(255,255,255,.6); }
 .switch-track::after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 45%); pointer-events:none; }
-/* 橙色随圆钮从左向右铺开，越往右越饱满 */
-.switch-fill { position:absolute; left:0; top:0; bottom:0; width:calc(100% - var(--travel) * (1 - var(--slide))); border-radius:inherit; opacity:calc(var(--slide) * 1.15);
-  background:linear-gradient(100deg,#ffa25e,#ff7a33 60%,#ff6a2b); box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
-.switch-knob { position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
-  background:#fff;
-  box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);
-  transition:scale .25s var(--ease-out); }
-.switch-knob svg { width:24px; height:24px; fill:none; stroke:var(--persimmon); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-.knob-check { opacity:0; transition:opacity .3s; }
-.switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring),background .3s,box-shadow .3s; }
+/* 滑过的地方铺开一片闪烁的像素光点，越靠近光球越亮 */
+.switch-fill { position:absolute; left:0; top:0; bottom:0; width:calc(100% - var(--travel) * (1 - var(--slide))); border-radius:inherit; opacity:calc(var(--slide) * 1.6); overflow:hidden;
+  background:linear-gradient(100deg,#ffc79a,#ff9150 50%,#ff6236); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -6px 14px -8px rgba(200,60,20,.35); }
+.switch-pixels { position:absolute; inset:0; width:100%; height:100%; }
+/* 圆钮：一颗发光的小光球，越往右越亮，四周的光芒慢慢转 */
+.switch-knob { --glow:calc(.25 + var(--slide) * .75); position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
+  background:radial-gradient(circle,#fff 0 30%,#fff7e8 44%,#ffe0bd 62%,#ffc89c 80%,#ffb886);
+  box-shadow:inset 0 0 6px rgba(255,255,255,.8),0 0 calc(8px + var(--slide) * 22px) calc(var(--slide) * 6px) rgba(255,178,110,var(--glow)),0 0 calc(var(--slide) * 50px) rgba(255,120,70,calc(var(--slide) * .55)),0 4px 10px -3px rgba(140,60,20,.25);
+  transition:scale .45s var(--spring); }
+.knob-rays { position:absolute; inset:-34%; border-radius:50%; pointer-events:none; opacity:var(--glow);
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.95) 0 1.4deg,transparent 1.4deg 11deg),repeating-conic-gradient(from 5deg,rgba(255,226,180,.8) 0 .9deg,transparent .9deg 17deg);
+  -webkit-mask:radial-gradient(circle,transparent 30%,#000 38%,rgba(0,0,0,.5) 52%,transparent 70%); mask:radial-gradient(circle,transparent 30%,#000 38%,rgba(0,0,0,.5) 52%,transparent 70%);
+  animation:raySpin 14s linear infinite; }
+.knob-rays::before { content:""; position:absolute; inset:0; border-radius:50%; background:repeating-conic-gradient(from 3deg,rgba(255,255,255,.7) 0 .8deg,transparent .8deg 23deg); animation:raySpin 9s linear infinite reverse; }
+@keyframes raySpin { to { rotate:360deg; } }
+.switch-knob svg { position:relative; z-index:1; width:24px; height:24px; }
+.knob-check { fill:none; stroke:var(--persimmon); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .3s; }
+.switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring); }
 .switch.returning .switch-fill { transition:width .6s var(--spring),opacity .4s ease; }
-.switch-knob { transition:scale .45s var(--spring),background .3s,box-shadow .3s,-webkit-backdrop-filter .3s,backdrop-filter .3s; }
-/* 拖动时圆钮变成一颗透明玻璃珠：透出下面的橙色，只留亮边和高光 */
-.switch-knob::before,.switch-knob::after { content:""; position:absolute; border-radius:50%; pointer-events:none; opacity:0; transition:opacity .3s ease; }
-.switch-knob::before { inset:0; background:radial-gradient(42% 24% at 38% 16%,rgba(255,255,255,.9),rgba(255,255,255,0) 75%),radial-gradient(50% 22% at 60% 92%,rgba(255,255,255,.4),transparent 75%); }
-.switch-knob::after { inset:-1px; box-shadow:inset 1.5px 1px 0 rgba(255,236,214,.9),inset -1.5px -1px 0 rgba(255,214,236,.75); }
-.switch.dragging .switch-knob { cursor:grabbing; scale:1.14; background:rgba(255,255,255,.04);
-  -webkit-backdrop-filter:brightness(1.1) saturate(1.1); backdrop-filter:brightness(1.1) saturate(1.1);
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),inset 0 0 14px rgba(255,255,255,.3),0 0 0 .5px rgba(0,0,0,.05),0 10px 22px -6px rgba(140,50,20,.32); }
-.switch.dragging .switch-knob::before,.switch.dragging .switch-knob::after { opacity:1; }
+.switch.dragging .switch-knob { cursor:grabbing; }
 .switch.ready .switch-track { box-shadow:0 12px 28px -6px rgba(255,90,60,.5); }
+@media (prefers-reduced-motion:reduce) { .knob-rays,.knob-rays::before { animation:none; } }
 .switch.locked .knob-check { opacity:1; }
 .switch.locked .switch-knob { cursor:default; }
 .switch:focus-visible .switch-track { outline:2px solid var(--ink); outline-offset:4px; }

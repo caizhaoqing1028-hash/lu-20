@@ -62,15 +62,41 @@ const postcard = $('postcard'), postcardWrap = $('postcardWrap'), envelopeCard =
 let slide = 0, drag = null, locked = false, travel = 0, opening = false, openGen = 0, openSize = null;
 
 function measureSlide() { travel = Math.max(0, track.clientWidth - knob.offsetWidth - 2 * knob.offsetLeft); slider.style.setProperty('--travel', travel + 'px'); }
+// 滑过的轨道：一格格像素光点随机闪烁，离光球越近越密越亮
+const pixels = (() => {
+  const cv = document.querySelector('.switch-pixels'), ctx = cv.getContext('2d'), CELL = 6, GAP = 1.5;
+  const COLORS = ['255,255,255', '255,244,214', '255,214,120', '255,170,200', '255,236,190'];
+  let seeds = [], raf = 0, until = 0, w = 0, h = 0;
+  function size() {
+    const r = cv.parentElement.parentElement.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+    if (!r.width || (r.width === w && r.height === h)) return; w = r.width; h = r.height;
+    cv.width = w * d; cv.height = h * d; cv.style.width = w + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0);
+    seeds = []; for (let x = GAP; x < w; x += CELL + GAP) for (let y = GAP + 1; y < h - CELL; y += CELL + GAP) seeds.push({x, y, p: Math.random() * 6.28, s: .6 + Math.random() * 1.8, c: COLORS[Math.random() * COLORS.length | 0], k: Math.random()});
+  }
+  function frame(now) {
+    raf = 0; const fw = cv.parentElement.getBoundingClientRect().width;
+    ctx.clearRect(0, 0, w, h);
+    for (const q of seeds) {
+      if (q.x > fw - 20) continue;
+      const near = Math.pow(Math.max(0, q.x / Math.max(1, fw - 20)), 1.6), tw = .5 + .5 * Math.sin(now / 1000 * q.s * 2.4 + q.p);
+      const a = (q.k < .2 + near * .6 ? 1 : .18) * (.12 + near * .8) * tw;
+      if (a < .03) continue;
+      ctx.fillStyle = `rgba(${q.c},${a.toFixed(3)})`; ctx.fillRect(q.x, q.y, CELL, CELL);
+    }
+    if ((slide > 0 || now < until) && !document.hidden && cv.offsetParent) raf = requestAnimationFrame(frame);
+  }
+  return {wake() { if (reduced.matches) return; size(); until = performance.now() + 900; if (!raf) raf = requestAnimationFrame(frame); }};
+})();
 function setSlide(value, returning = false) {
   slide = clamp(value);
   slider.classList.toggle('returning', returning);
   slider.classList.toggle('ready', slide >= .9 && !locked);
   slider.style.setProperty('--slide', slide);
+  pixels.wake();
   slider.setAttribute('aria-valuenow', String(Math.round(slide * 100)));
   slider.setAttribute('aria-valuetext', locked ? '惊喜已拆开' : `已滑动 ${Math.round(slide * 100)}%，滑到最右侧拆开惊喜`);
   $('slideTitle').textContent = locked ? '惊喜已开启' : '拆开惊喜';
-  $('slideHint').textContent = locked ? '小猫正在送来祝福' : slide >= .9 ? '松手，拆开惊喜' : '向右滑动白色圆点';
+  $('slideHint').textContent = locked ? '小猫正在送来祝福' : slide >= .9 ? '松手，拆开惊喜' : '向右滑动小光球';
 }
 function resetSlide() { drag = null; knob.style.scale = ''; slider.classList.remove('dragging'); if (!locked) setSlide(0, true); }
 function restorePostcard() { if (postcard.parentElement !== postcardWrap) postcardWrap.appendChild(postcard); postcardWrap.classList.remove('travelling'); gift.classList.remove('flying'); }
@@ -145,8 +171,8 @@ slider.addEventListener('pointermove', e => {
   if (!reduced.matches) {
     const v = drag.lastT ? (e.clientX - drag.lastX) / Math.max(8, e.timeStamp - drag.lastT) : 0;
     drag.v = (drag.v || 0) * .6 + v * .4; drag.lastX = e.clientX; drag.lastT = e.timeStamp;
-    const k = Math.min(.12, Math.abs(drag.v) * .2);
-    knob.style.scale = `${(1.14 + k).toFixed(3)} ${(1.14 - k * .5).toFixed(3)}`;
+    const k = Math.min(.05, Math.abs(drag.v) * .1);
+    knob.style.scale = `${(1.06 + k).toFixed(3)} ${(1.06 - k * .5).toFixed(3)}`;
   }
 });
 slider.addEventListener('pointerup', e => {
