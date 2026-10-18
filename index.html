@@ -131,6 +131,10 @@ svg { flex-shrink:0; }
 .switch.returning .dock-copy { transition:opacity .45s ease; }
 .switch.locked .dock-copy { left:8px; right:72px; opacity:1; }
 .switch.locked .dock-title,.switch.locked .dock-hint { color:#fff; }
+.dock-title { background:linear-gradient(100deg,var(--ink) 0 38%,#ff8a3d 46%,#ffd9b0 50%,#ff8a3d 54%,var(--ink) 62%) 0 0/250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:titleSheen 3.2s cubic-bezier(.45,0,.3,1) infinite; }
+.switch.locked .dock-title { background:none; -webkit-text-fill-color:#fff; animation:none; }
+@keyframes titleSheen { from { background-position:100% 0; } 70%,to { background-position:0 0; } }
+@media (prefers-reduced-motion:reduce) { .dock-title { animation:none; background-position:100% 0; } }
 .dock-title { display:block; font:600 17px/1.3 var(--sans); letter-spacing:.02em; color:var(--ink); white-space:nowrap; }
 .dock-hint { display:block; margin-top:4px; font:400 12px/1.5 var(--sans); letter-spacing:.02em; color:var(--ink-2); white-space:nowrap; transition:color .25s; }
 .switch { --slide:0; --travel:260px; position:relative; flex:1 1 auto; min-width:0; border-radius:40px; outline:none; touch-action:pan-y; -webkit-user-select:none; user-select:none; }
@@ -142,24 +146,19 @@ svg { flex-shrink:0; }
 .switch-fill { position:absolute; left:0; top:0; bottom:0; width:calc(100% - var(--travel) * (1 - var(--slide))); border-radius:inherit; opacity:calc(var(--slide) * 1.6); overflow:hidden;
   background:linear-gradient(100deg,#ffc79a,#ff9150 50%,#ff6236); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -6px 14px -8px rgba(200,60,20,.35); }
 .switch-pixels { position:absolute; inset:0; width:100%; height:100%; }
-/* 圆钮：一颗发光的小光球，越往右越亮，四周的光芒慢慢转 */
-.switch-knob { --glow:calc(.25 + var(--slide) * .75); position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
-  background:radial-gradient(circle,#fff 0 30%,#fff7e8 44%,#ffe0bd 62%,#ffc89c 80%,#ffb886);
-  box-shadow:inset 0 0 6px rgba(255,255,255,.8),0 0 calc(8px + var(--slide) * 22px) calc(var(--slide) * 6px) rgba(255,178,110,var(--glow)),0 0 calc(var(--slide) * 50px) rgba(255,120,70,calc(var(--slide) * .55)),0 4px 10px -3px rgba(140,60,20,.25);
+/* 圆钮：一团会呼吸的粒子光球（光丝从中心迸出，聚在球面上） */
+.switch-knob { --glow:calc(.3 + var(--slide) * .7); position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
+  --bg:calc(1 - var(--slide) * .75); background:radial-gradient(circle,rgba(255,252,244,.95) 0 14%,rgba(255,232,206,calc(var(--bg) * .55)) 42%,rgba(255,206,170,calc(var(--bg) * .28)) 70%,rgba(255,196,160,calc(var(--bg) * .18)));
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),0 0 calc(10px + var(--slide) * 22px) calc(var(--slide) * 5px) rgba(255,176,104,var(--glow)),0 0 calc(var(--slide) * 48px) rgba(255,120,70,calc(var(--slide) * .5)),0 4px 12px -4px rgba(140,60,20,.22);
   transition:scale .45s var(--spring); }
-.knob-rays { position:absolute; inset:-34%; border-radius:50%; pointer-events:none; opacity:var(--glow);
-  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.95) 0 1.4deg,transparent 1.4deg 11deg),repeating-conic-gradient(from 5deg,rgba(255,226,180,.8) 0 .9deg,transparent .9deg 17deg);
-  -webkit-mask:radial-gradient(circle,transparent 30%,#000 38%,rgba(0,0,0,.5) 52%,transparent 70%); mask:radial-gradient(circle,transparent 30%,#000 38%,rgba(0,0,0,.5) 52%,transparent 70%);
-  animation:raySpin 14s linear infinite; }
-.knob-rays::before { content:""; position:absolute; inset:0; border-radius:50%; background:repeating-conic-gradient(from 3deg,rgba(255,255,255,.7) 0 .8deg,transparent .8deg 23deg); animation:raySpin 9s linear infinite reverse; }
-@keyframes raySpin { to { rotate:360deg; } }
+.knob-burst { position:absolute; left:-12%; top:-12%; width:124%; height:124%; pointer-events:none; }
 .switch-knob svg { position:relative; z-index:1; width:24px; height:24px; }
 .knob-check { fill:none; stroke:var(--persimmon); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .3s; }
 .switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring); }
 .switch.returning .switch-fill { transition:width .6s var(--spring),opacity .4s ease; }
 .switch.dragging .switch-knob { cursor:grabbing; }
 .switch.ready .switch-track { box-shadow:0 12px 28px -6px rgba(255,90,60,.5); }
-@media (prefers-reduced-motion:reduce) { .knob-rays,.knob-rays::before { animation:none; } }
+
 .switch.locked .knob-check { opacity:1; }
 .switch.locked .switch-knob { cursor:default; }
 .switch:focus-visible .switch-track { outline:2px solid var(--ink); outline-offset:4px; }
@@ -564,7 +563,7 @@ body.dialog-open .paper-light i { animation-play-state:paused !important; }
           <span class="switch-track" aria-hidden="true">
             <span class="switch-fill"><canvas class="switch-pixels" aria-hidden="true"></canvas></span>
             <span class="dock-copy"><span id="slideTitle" class="dock-title">拆开惊喜</span><span id="slideHint" class="dock-hint">向右滑动小光球</span></span>
-            <span class="switch-knob"><i class="knob-rays" aria-hidden="true"></i><svg viewBox="0 0 24 24" aria-hidden="true"><path class="knob-check" d="m6 12.5 4 4 8-9"/></svg></span>
+            <span class="switch-knob"><canvas class="knob-burst" aria-hidden="true"></canvas><svg viewBox="0 0 24 24" aria-hidden="true"><path class="knob-check" d="m6 12.5 4 4 8-9"/></svg></span>
           </span>
         </div>
       </div>
@@ -819,6 +818,55 @@ const postcard = $('postcard'), postcardWrap = $('postcardWrap'), envelopeCard =
 let slide = 0, drag = null, locked = false, travel = 0, opening = false, openGen = 0, openSize = null;
 
 function measureSlide() { travel = Math.max(0, track.clientWidth - knob.offsetWidth - 2 * knob.offsetLeft); slider.style.setProperty('--travel', travel + 'px'); }
+// 圆钮里的粒子光球：光丝从中心迸射出去，越到球面越慢、越密，整颗球缓缓自转
+const knobBurst = (() => {
+  const cv = document.querySelector('.knob-burst'), ctx = cv.getContext('2d'), N = 260, parts = [];
+  let raf = 0, size = 0, spin = 0, last = 0;
+  function seed(q, fresh) {
+    const u = Math.random() * 2 - 1, a = Math.random() * 6.283, k = Math.sqrt(1 - u * u);
+    q.x = k * Math.cos(a); q.y = u; q.z = k * Math.sin(a);
+    q.t = fresh ? Math.random() : 0; q.v = .35 + Math.random() * .55; q.w = .6 + Math.random() * 1.1;
+  }
+  for (let i = 0; i < N; i++) { const q = {}; seed(q, true); parts.push(q); }
+  function fit() {
+    const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+    if (!r.width || r.width === size) return; size = r.width;
+    cv.width = cv.height = Math.round(size * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  const ease = t => 1 - Math.pow(1 - t, 3.4);
+  function frame(now) {
+    raf = 0; fit();
+    const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+    const s = slide, boost = 1 + s * 1.6, c = size / 2, R = size * .4;
+    spin += dt * (.35 + s * .9);
+    const cs = Math.cos(spin), sn = Math.sin(spin);
+    ctx.clearRect(0, 0, size, size);
+    // 中心的白热光核，微微闪烁
+    const flick = .85 + .15 * Math.sin(now / 90) * Math.sin(now / 37);
+    let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.55 + s * .25));
+    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(255,236,200,${.7 * flick})`); g.addColorStop(1, 'rgba(255,170,100,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, 6.283); ctx.fill();
+    ctx.lineCap = 'round';
+    for (const q of parts) {
+      q.t += dt * q.v * .9 * boost;
+      if (q.t >= 1) seed(q, false);
+      const x = q.x * cs - q.z * sn, z = q.x * sn + q.z * cs, y = q.y;
+      const r1 = ease(q.t), r0 = ease(Math.max(0, q.t - .09 * q.w)), depth = .55 + .45 * (z + 1) / 2;
+      const fade = Math.min(1, q.t * 5) * (1 - Math.pow(q.t, 9)) * depth;
+      if (fade < .04) continue;
+      const hot = 1 - r1;
+      // 越靠近光核越白；外圈在静止时是橘色，滑动后渐渐变成白金色，压在橙色上也看得清
+      const m = Math.min(1, hot * 2 + s * .9);
+      ctx.strokeStyle = `rgba(255,${138 + 112 * m | 0},${61 + 170 * m | 0},${fade})`;
+      ctx.lineWidth = (.7 + .9 * depth) * (size / 74);
+      ctx.beginPath(); ctx.moveTo(c + x * R * r0, c + y * R * r0); ctx.lineTo(c + x * R * r1, c + y * R * r1); ctx.stroke();
+    }
+    if (!document.hidden && cv.offsetParent && !reduced.matches) raf = requestAnimationFrame(frame);
+  }
+  return {wake() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }};
+})();
+knobBurst.wake();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) knobBurst.wake(); });
 // 滑过的轨道：一格格像素光点随机闪烁，离光球越近越密越亮
 const pixels = (() => {
   const cv = document.querySelector('.switch-pixels'), ctx = cv.getContext('2d'), CELL = 6, GAP = 1.5;
@@ -849,7 +897,7 @@ function setSlide(value, returning = false) {
   slider.classList.toggle('returning', returning);
   slider.classList.toggle('ready', slide >= .9 && !locked);
   slider.style.setProperty('--slide', slide);
-  pixels.wake();
+  pixels.wake(); knobBurst.wake();
   slider.setAttribute('aria-valuenow', String(Math.round(slide * 100)));
   slider.setAttribute('aria-valuetext', locked ? '惊喜已拆开' : `已滑动 ${Math.round(slide * 100)}%，滑到最右侧拆开惊喜`);
   $('slideTitle').textContent = locked ? '惊喜已开启' : '拆开惊喜';

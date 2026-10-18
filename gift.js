@@ -62,6 +62,55 @@ const postcard = $('postcard'), postcardWrap = $('postcardWrap'), envelopeCard =
 let slide = 0, drag = null, locked = false, travel = 0, opening = false, openGen = 0, openSize = null;
 
 function measureSlide() { travel = Math.max(0, track.clientWidth - knob.offsetWidth - 2 * knob.offsetLeft); slider.style.setProperty('--travel', travel + 'px'); }
+// 圆钮里的粒子光球：光丝从中心迸射出去，越到球面越慢、越密，整颗球缓缓自转
+const knobBurst = (() => {
+  const cv = document.querySelector('.knob-burst'), ctx = cv.getContext('2d'), N = 260, parts = [];
+  let raf = 0, size = 0, spin = 0, last = 0;
+  function seed(q, fresh) {
+    const u = Math.random() * 2 - 1, a = Math.random() * 6.283, k = Math.sqrt(1 - u * u);
+    q.x = k * Math.cos(a); q.y = u; q.z = k * Math.sin(a);
+    q.t = fresh ? Math.random() : 0; q.v = .35 + Math.random() * .55; q.w = .6 + Math.random() * 1.1;
+  }
+  for (let i = 0; i < N; i++) { const q = {}; seed(q, true); parts.push(q); }
+  function fit() {
+    const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+    if (!r.width || r.width === size) return; size = r.width;
+    cv.width = cv.height = Math.round(size * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  const ease = t => 1 - Math.pow(1 - t, 3.4);
+  function frame(now) {
+    raf = 0; fit();
+    const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+    const s = slide, boost = 1 + s * 1.6, c = size / 2, R = size * .4;
+    spin += dt * (.35 + s * .9);
+    const cs = Math.cos(spin), sn = Math.sin(spin);
+    ctx.clearRect(0, 0, size, size);
+    // 中心的白热光核，微微闪烁
+    const flick = .85 + .15 * Math.sin(now / 90) * Math.sin(now / 37);
+    let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.55 + s * .25));
+    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(255,236,200,${.7 * flick})`); g.addColorStop(1, 'rgba(255,170,100,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, 6.283); ctx.fill();
+    ctx.lineCap = 'round';
+    for (const q of parts) {
+      q.t += dt * q.v * .9 * boost;
+      if (q.t >= 1) seed(q, false);
+      const x = q.x * cs - q.z * sn, z = q.x * sn + q.z * cs, y = q.y;
+      const r1 = ease(q.t), r0 = ease(Math.max(0, q.t - .09 * q.w)), depth = .55 + .45 * (z + 1) / 2;
+      const fade = Math.min(1, q.t * 5) * (1 - Math.pow(q.t, 9)) * depth;
+      if (fade < .04) continue;
+      const hot = 1 - r1;
+      // 越靠近光核越白；外圈在静止时是橘色，滑动后渐渐变成白金色，压在橙色上也看得清
+      const m = Math.min(1, hot * 2 + s * .9);
+      ctx.strokeStyle = `rgba(255,${138 + 112 * m | 0},${61 + 170 * m | 0},${fade})`;
+      ctx.lineWidth = (.7 + .9 * depth) * (size / 74);
+      ctx.beginPath(); ctx.moveTo(c + x * R * r0, c + y * R * r0); ctx.lineTo(c + x * R * r1, c + y * R * r1); ctx.stroke();
+    }
+    if (!document.hidden && cv.offsetParent && !reduced.matches) raf = requestAnimationFrame(frame);
+  }
+  return {wake() { if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }};
+})();
+knobBurst.wake();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) knobBurst.wake(); });
 // 滑过的轨道：一格格像素光点随机闪烁，离光球越近越密越亮
 const pixels = (() => {
   const cv = document.querySelector('.switch-pixels'), ctx = cv.getContext('2d'), CELL = 6, GAP = 1.5;
@@ -92,7 +141,7 @@ function setSlide(value, returning = false) {
   slider.classList.toggle('returning', returning);
   slider.classList.toggle('ready', slide >= .9 && !locked);
   slider.style.setProperty('--slide', slide);
-  pixels.wake();
+  pixels.wake(); knobBurst.wake();
   slider.setAttribute('aria-valuenow', String(Math.round(slide * 100)));
   slider.setAttribute('aria-valuetext', locked ? '惊喜已拆开' : `已滑动 ${Math.round(slide * 100)}%，滑到最右侧拆开惊喜`);
   $('slideTitle').textContent = locked ? '惊喜已开启' : '拆开惊喜';
