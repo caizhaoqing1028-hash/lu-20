@@ -345,7 +345,7 @@ function stageActive() { return experience.open && !letter.open && !isAway(); }
 
 function cancelScene() {
   ++sceneGen; sceneBusy = false; joyDrag = null; orbitDrag = null; spin = 0;
-  cancelGroup('scene'); spinLoop.stop(); starLoop.stop(); depthLoop.stop(); depthTime = null; $('depthCanvas').hidden = true;
+  cancelGroup('scene'); spinLoop.stop(); starLoop.stop(); snowLoop.stop(); depthLoop.stop(); depthTime = null; $('depthCanvas').hidden = true;
   orbit.classList.remove('dragging'); joyDot.classList.remove('grabbing');
   document.querySelectorAll('.final-cat.pet').forEach(c => { clearTimeout(c._petTimer); c.classList.remove('pet'); });
 }
@@ -809,7 +809,7 @@ function renderStarButtons() {
   $('starFallback').hidden = !!glyph || count !== 3;
 }
 function enterStars() {
-  buildGlyph(); renderStarButtons(); resizeStars();
+  buildGlyph(); renderStarButtons(); resizeStars(); startSnow();
   if (state.done[2]) { $('stageStatus').textContent = '这一片星光属于你，用手指拨一拨。'; revealCopy($('starBlessing'), 520); }
   else checkStarsStill();
 }
@@ -835,8 +835,67 @@ for (const type of ['pointerleave', 'pointerup', 'pointercancel']) starsScene.ad
 starButtons.forEach((button, i) => button.addEventListener('click', () => {
   if (state.stars[i] || state.scene !== 2) return;
   state.stars[i] = true; renderStarButtons(); revealCopy($('starCount'));
-  starLoop.start(); checkStarsStill();
+  starLoop.start(); checkStarsStill(); snowPulse(button);
 }));
+
+/* --- 第三段的初雪：近大远小慢慢飘落，点亮星星时被光推开、闪一下 --- */
+const snowCanvas = $('snowCanvas');
+let nctx = null; try { nctx = snowCanvas.getContext('2d'); } catch { nctx = null; }
+const flakes = []; let nw = 0, nh = 0;
+function sizeSnow() {
+  const w = snowCanvas.clientWidth, h = snowCanvas.clientHeight, d = Math.min(devicePixelRatio || 1, 2);
+  if (!w || (w === nw && h === nh)) return; nw = w; nh = h;
+  snowCanvas.width = Math.round(w * d); snowCanvas.height = Math.round(h * d); nctx.setTransform(d, 0, 0, d, 0, 0);
+  if (!flakes.length) for (let i = 0; i < Math.round(w * h / 7000); i++) flakes.push(newFlake(true));
+}
+function newFlake(anywhere) {
+  const z = Math.random(), crystal = z > .9;
+  return {x: Math.random() * nw, y: anywhere ? Math.random() * nh : -10, z, r: crystal ? 3.2 + z * 2 : .6 + z * 1.7, crystal, vx: 0, vy: 0, ph: Math.random() * 6.28, rot: Math.random() * 6.28, glint: 0};
+}
+function drawFlake(f) {
+  const a = (.25 + f.z * .5) + f.glint * .6;
+  if (f.crystal) {
+    nctx.save(); nctx.translate(f.x, f.y); nctx.rotate(f.rot); nctx.strokeStyle = `rgba(255,255,255,${Math.min(1, a)})`; nctx.lineWidth = .9; nctx.lineCap = 'round';
+    nctx.beginPath();
+    for (let k = 0; k < 6; k++) { const ang = k * Math.PI / 3, cx = Math.cos(ang), sy = Math.sin(ang), b = f.r * .55;
+      nctx.moveTo(0, 0); nctx.lineTo(cx * f.r, sy * f.r);
+      nctx.moveTo(cx * b, sy * b); nctx.lineTo(cx * b + Math.cos(ang + .7) * f.r * .32, sy * b + Math.sin(ang + .7) * f.r * .32);
+      nctx.moveTo(cx * b, sy * b); nctx.lineTo(cx * b + Math.cos(ang - .7) * f.r * .32, sy * b + Math.sin(ang - .7) * f.r * .32); }
+    nctx.stroke(); nctx.restore();
+    return;
+  }
+  const g = nctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 2.4); g.addColorStop(0, `rgba(235,240,255,${a * .35})`); g.addColorStop(1, 'rgba(235,240,255,0)');
+  nctx.fillStyle = g; nctx.beginPath(); nctx.arc(f.x, f.y, f.r * 2.4, 0, 6.283); nctx.fill();
+  nctx.fillStyle = `rgba(255,255,255,${Math.min(1, a)})`; nctx.beginPath(); nctx.arc(f.x, f.y, f.r, 0, 6.283); nctx.fill();
+}
+function stepSnow(dt, now) {
+  if (!nctx) return false;
+  sizeSnow(); nctx.clearRect(0, 0, nw, nh);
+  const k = dt / 16;
+  for (let i = 0; i < flakes.length; i++) {
+    const f = flakes[i];
+    f.vx *= .94; f.vy *= .94; f.glint *= .965;
+    f.x += (Math.sin(now / 1600 + f.ph) * (.15 + f.z * .25) + f.vx) * k;
+    f.y += ((.25 + f.z * .75) + f.vy) * k;
+    f.rot += .004 * k;
+    if (f.y > nh + 12 || f.x < -20 || f.x > nw + 20) flakes[i] = newFlake(false);
+    drawFlake(flakes[i]);
+  }
+}
+const snowLoop = makeLoop(stepSnow, () => stageActive() && state.scene === 2 && !reduced.matches);
+function startSnow() {
+  if (!nctx) return;
+  if (reduced.matches) { sizeSnow(); nctx.clearRect(0, 0, nw, nh); flakes.forEach(drawFlake); return; }
+  snowLoop.start();
+}
+// 星星亮起：附近的雪花被光轻轻推开，并闪一下
+function snowPulse(el) {
+  const r = el.getBoundingClientRect(), c = snowCanvas.getBoundingClientRect(), x = r.left + r.width / 2 - c.left, y = r.top + r.height / 2 - c.top;
+  for (const f of flakes) {
+    const dx = f.x - x, dy = f.y - y, d = Math.hypot(dx, dy) || 1;
+    if (d < 170) { const p = (1 - d / 170) * 3.2; f.vx += dx / d * p; f.vy += dy / d * p - .6; f.glint = Math.max(f.glint, 1 - d / 170); }
+  }
+}
 
 /* --- 进入第三段：短暂的透视线框过渡 --- */
 const depthCanvas = $('depthCanvas');
@@ -1002,10 +1061,10 @@ function syncActivity() {
     if (canPlay(group)) a.play(); else a.pause();
   }
   if (stageActive()) {
-    if (state.scene === 2 && !reduced.matches) starLoop.start();
+    if (state.scene === 2 && !reduced.matches) { starLoop.start(); snowLoop.start(); }
     if (depthTime !== null) depthLoop.start();
     if (state.scene === 1 && Math.abs(spin) > .01) spinLoop.start();
-  } else { starLoop.stop(); depthLoop.stop(); spinLoop.stop(); }
+  } else { starLoop.stop(); snowLoop.stop(); depthLoop.stop(); spinLoop.stop(); }
 }
 function onResize() {
   measureSlide();

@@ -107,6 +107,7 @@ svg { flex-shrink:0; }
 .entrance-actions::before,.stage-controls::before,.extras::before { content:""; position:absolute; z-index:-1; pointer-events:none; filter:blur(22px);
   background:radial-gradient(38% 55% at 22% 50%,rgba(255,150,90,.5),transparent 72%),radial-gradient(36% 55% at 60% 40%,rgba(255,206,120,.4),transparent 72%),radial-gradient(38% 55% at 86% 55%,rgba(255,110,160,.42),transparent 72%); }
 .entrance-actions::before { left:-6%; right:-6%; top:-8%; height:82%; opacity:.5; }
+.entrance-actions::before { background:radial-gradient(38% 55% at 22% 50%,rgba(160,130,255,.42),transparent 72%),radial-gradient(36% 55% at 60% 40%,rgba(205,185,255,.4),transparent 72%),radial-gradient(38% 55% at 86% 55%,rgba(255,150,210,.32),transparent 72%); }
 .stage-controls { position:relative; }
 .stage-controls::before { left:-4%; right:-4%; top:-30%; bottom:-30%; opacity:.75; }
 .extras { position:relative; }
@@ -257,7 +258,7 @@ svg { flex-shrink:0; }
 @keyframes sheetUp { from { opacity:0; transform:translateY(56px) scale(.97); } }
 @keyframes fadeIn { from { opacity:0; } }
 .experience::backdrop { background:transparent; }
-.stage-bg { position:absolute; inset:0; }
+.stage-bg { position:absolute; inset:0; z-index:0; }
 .stage-bg i { position:absolute; inset:0; opacity:0; z-index:0; transition:opacity .9s ease; }
 .stage-bg i.was { opacity:1; transition:none; }
 .bg-joy { background:radial-gradient(90% 50% at 100% 100%,rgba(255,150,90,.2),transparent 65%),radial-gradient(70% 40% at 0% 0%,rgba(255,220,200,.35),transparent 65%),var(--paper); }
@@ -269,6 +270,9 @@ svg { flex-shrink:0; }
 .stage-morph-label { position:fixed; display:grid; place-items:center; padding-right:18px; color:#fff; font:600 16px/1 var(--sans); letter-spacing:.02em; }
 .core-wave { position:absolute; inset:24%; z-index:1; border-radius:50%; pointer-events:none; border:2px solid rgba(255,138,61,.55); box-shadow:0 0 24px rgba(255,120,80,.45),inset 0 0 18px rgba(255,180,140,.4); }
 .stage-token { position:fixed; z-index:8; left:0; top:0; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; pointer-events:none; }
+/* 夜空里的初雪：只在点亮星星那一段出现 */
+.snow-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity 1s ease; }
+.experience[data-scene="2"] .snow-canvas { opacity:1; }
 .depth-canvas { position:absolute; inset:0; z-index:5; width:100%; height:100%; pointer-events:none; }
 .stage { position:relative; z-index:1; display:flex; flex-direction:column; width:100%; max-width:480px; height:100%; margin:0 auto; padding:max(4px,env(safe-area-inset-top)) 0 max(12px,env(safe-area-inset-bottom)); transition:color .5s .35s; }
 .stage-head { display:flex; align-items:center; justify-content:space-between; height:58px; padding:0 16px 0 24px; flex-shrink:0; }

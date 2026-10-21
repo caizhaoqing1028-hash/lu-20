@@ -119,6 +119,7 @@ svg { flex-shrink:0; }
 .entrance-actions::before,.stage-controls::before,.extras::before { content:""; position:absolute; z-index:-1; pointer-events:none; filter:blur(22px);
   background:radial-gradient(38% 55% at 22% 50%,rgba(255,150,90,.5),transparent 72%),radial-gradient(36% 55% at 60% 40%,rgba(255,206,120,.4),transparent 72%),radial-gradient(38% 55% at 86% 55%,rgba(255,110,160,.42),transparent 72%); }
 .entrance-actions::before { left:-6%; right:-6%; top:-8%; height:82%; opacity:.5; }
+.entrance-actions::before { background:radial-gradient(38% 55% at 22% 50%,rgba(160,130,255,.42),transparent 72%),radial-gradient(36% 55% at 60% 40%,rgba(205,185,255,.4),transparent 72%),radial-gradient(38% 55% at 86% 55%,rgba(255,150,210,.32),transparent 72%); }
 .stage-controls { position:relative; }
 .stage-controls::before { left:-4%; right:-4%; top:-30%; bottom:-30%; opacity:.75; }
 .extras { position:relative; }
@@ -269,7 +270,7 @@ svg { flex-shrink:0; }
 @keyframes sheetUp { from { opacity:0; transform:translateY(56px) scale(.97); } }
 @keyframes fadeIn { from { opacity:0; } }
 .experience::backdrop { background:transparent; }
-.stage-bg { position:absolute; inset:0; }
+.stage-bg { position:absolute; inset:0; z-index:0; }
 .stage-bg i { position:absolute; inset:0; opacity:0; z-index:0; transition:opacity .9s ease; }
 .stage-bg i.was { opacity:1; transition:none; }
 .bg-joy { background:radial-gradient(90% 50% at 100% 100%,rgba(255,150,90,.2),transparent 65%),radial-gradient(70% 40% at 0% 0%,rgba(255,220,200,.35),transparent 65%),var(--paper); }
@@ -281,6 +282,9 @@ svg { flex-shrink:0; }
 .stage-morph-label { position:fixed; display:grid; place-items:center; padding-right:18px; color:#fff; font:600 16px/1 var(--sans); letter-spacing:.02em; }
 .core-wave { position:absolute; inset:24%; z-index:1; border-radius:50%; pointer-events:none; border:2px solid rgba(255,138,61,.55); box-shadow:0 0 24px rgba(255,120,80,.45),inset 0 0 18px rgba(255,180,140,.4); }
 .stage-token { position:fixed; z-index:8; left:0; top:0; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; pointer-events:none; }
+/* 夜空里的初雪：只在点亮星星那一段出现 */
+.snow-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity 1s ease; }
+.experience[data-scene="2"] .snow-canvas { opacity:1; }
 .depth-canvas { position:absolute; inset:0; z-index:5; width:100%; height:100%; pointer-events:none; }
 .stage { position:relative; z-index:1; display:flex; flex-direction:column; width:100%; max-width:480px; height:100%; margin:0 auto; padding:max(4px,env(safe-area-inset-top)) 0 max(12px,env(safe-area-inset-bottom)); transition:color .5s .35s; }
 .stage-head { display:flex; align-items:center; justify-content:space-between; height:58px; padding:0 16px 0 24px; flex-shrink:0; }
@@ -627,6 +631,7 @@ body.dialog-open .paper-light i { animation-play-state:paused !important; }
     <div class="stage-morph" aria-hidden="true"></div>
     <div class="stage-bg" aria-hidden="true"><i class="bg-joy"></i><i class="bg-wish"></i><i class="bg-night"></i><i class="bg-dawn"></i></div>
     <canvas id="depthCanvas" class="depth-canvas" aria-hidden="true" hidden></canvas>
+    <canvas id="snowCanvas" class="snow-canvas" aria-hidden="true"></canvas>
     <div class="stage">
       <div class="stage-head">
         <span class="brand small"><img src="assets/brand.svg" alt="" width="22" height="22">给璐的生日惊喜</span>
@@ -1101,7 +1106,7 @@ function stageActive() { return experience.open && !letter.open && !isAway(); }
 
 function cancelScene() {
   ++sceneGen; sceneBusy = false; joyDrag = null; orbitDrag = null; spin = 0;
-  cancelGroup('scene'); spinLoop.stop(); starLoop.stop(); depthLoop.stop(); depthTime = null; $('depthCanvas').hidden = true;
+  cancelGroup('scene'); spinLoop.stop(); starLoop.stop(); snowLoop.stop(); depthLoop.stop(); depthTime = null; $('depthCanvas').hidden = true;
   orbit.classList.remove('dragging'); joyDot.classList.remove('grabbing');
   document.querySelectorAll('.final-cat.pet').forEach(c => { clearTimeout(c._petTimer); c.classList.remove('pet'); });
 }
@@ -1565,7 +1570,7 @@ function renderStarButtons() {
   $('starFallback').hidden = !!glyph || count !== 3;
 }
 function enterStars() {
-  buildGlyph(); renderStarButtons(); resizeStars();
+  buildGlyph(); renderStarButtons(); resizeStars(); startSnow();
   if (state.done[2]) { $('stageStatus').textContent = '这一片星光属于你，用手指拨一拨。'; revealCopy($('starBlessing'), 520); }
   else checkStarsStill();
 }
@@ -1591,8 +1596,67 @@ for (const type of ['pointerleave', 'pointerup', 'pointercancel']) starsScene.ad
 starButtons.forEach((button, i) => button.addEventListener('click', () => {
   if (state.stars[i] || state.scene !== 2) return;
   state.stars[i] = true; renderStarButtons(); revealCopy($('starCount'));
-  starLoop.start(); checkStarsStill();
+  starLoop.start(); checkStarsStill(); snowPulse(button);
 }));
+
+/* --- 第三段的初雪：近大远小慢慢飘落，点亮星星时被光推开、闪一下 --- */
+const snowCanvas = $('snowCanvas');
+let nctx = null; try { nctx = snowCanvas.getContext('2d'); } catch { nctx = null; }
+const flakes = []; let nw = 0, nh = 0;
+function sizeSnow() {
+  const w = snowCanvas.clientWidth, h = snowCanvas.clientHeight, d = Math.min(devicePixelRatio || 1, 2);
+  if (!w || (w === nw && h === nh)) return; nw = w; nh = h;
+  snowCanvas.width = Math.round(w * d); snowCanvas.height = Math.round(h * d); nctx.setTransform(d, 0, 0, d, 0, 0);
+  if (!flakes.length) for (let i = 0; i < Math.round(w * h / 7000); i++) flakes.push(newFlake(true));
+}
+function newFlake(anywhere) {
+  const z = Math.random(), crystal = z > .9;
+  return {x: Math.random() * nw, y: anywhere ? Math.random() * nh : -10, z, r: crystal ? 3.2 + z * 2 : .6 + z * 1.7, crystal, vx: 0, vy: 0, ph: Math.random() * 6.28, rot: Math.random() * 6.28, glint: 0};
+}
+function drawFlake(f) {
+  const a = (.25 + f.z * .5) + f.glint * .6;
+  if (f.crystal) {
+    nctx.save(); nctx.translate(f.x, f.y); nctx.rotate(f.rot); nctx.strokeStyle = `rgba(255,255,255,${Math.min(1, a)})`; nctx.lineWidth = .9; nctx.lineCap = 'round';
+    nctx.beginPath();
+    for (let k = 0; k < 6; k++) { const ang = k * Math.PI / 3, cx = Math.cos(ang), sy = Math.sin(ang), b = f.r * .55;
+      nctx.moveTo(0, 0); nctx.lineTo(cx * f.r, sy * f.r);
+      nctx.moveTo(cx * b, sy * b); nctx.lineTo(cx * b + Math.cos(ang + .7) * f.r * .32, sy * b + Math.sin(ang + .7) * f.r * .32);
+      nctx.moveTo(cx * b, sy * b); nctx.lineTo(cx * b + Math.cos(ang - .7) * f.r * .32, sy * b + Math.sin(ang - .7) * f.r * .32); }
+    nctx.stroke(); nctx.restore();
+    return;
+  }
+  const g = nctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 2.4); g.addColorStop(0, `rgba(235,240,255,${a * .35})`); g.addColorStop(1, 'rgba(235,240,255,0)');
+  nctx.fillStyle = g; nctx.beginPath(); nctx.arc(f.x, f.y, f.r * 2.4, 0, 6.283); nctx.fill();
+  nctx.fillStyle = `rgba(255,255,255,${Math.min(1, a)})`; nctx.beginPath(); nctx.arc(f.x, f.y, f.r, 0, 6.283); nctx.fill();
+}
+function stepSnow(dt, now) {
+  if (!nctx) return false;
+  sizeSnow(); nctx.clearRect(0, 0, nw, nh);
+  const k = dt / 16;
+  for (let i = 0; i < flakes.length; i++) {
+    const f = flakes[i];
+    f.vx *= .94; f.vy *= .94; f.glint *= .965;
+    f.x += (Math.sin(now / 1600 + f.ph) * (.15 + f.z * .25) + f.vx) * k;
+    f.y += ((.25 + f.z * .75) + f.vy) * k;
+    f.rot += .004 * k;
+    if (f.y > nh + 12 || f.x < -20 || f.x > nw + 20) flakes[i] = newFlake(false);
+    drawFlake(flakes[i]);
+  }
+}
+const snowLoop = makeLoop(stepSnow, () => stageActive() && state.scene === 2 && !reduced.matches);
+function startSnow() {
+  if (!nctx) return;
+  if (reduced.matches) { sizeSnow(); nctx.clearRect(0, 0, nw, nh); flakes.forEach(drawFlake); return; }
+  snowLoop.start();
+}
+// 星星亮起：附近的雪花被光轻轻推开，并闪一下
+function snowPulse(el) {
+  const r = el.getBoundingClientRect(), c = snowCanvas.getBoundingClientRect(), x = r.left + r.width / 2 - c.left, y = r.top + r.height / 2 - c.top;
+  for (const f of flakes) {
+    const dx = f.x - x, dy = f.y - y, d = Math.hypot(dx, dy) || 1;
+    if (d < 170) { const p = (1 - d / 170) * 3.2; f.vx += dx / d * p; f.vy += dy / d * p - .6; f.glint = Math.max(f.glint, 1 - d / 170); }
+  }
+}
 
 /* --- 进入第三段：短暂的透视线框过渡 --- */
 const depthCanvas = $('depthCanvas');
@@ -1758,10 +1822,10 @@ function syncActivity() {
     if (canPlay(group)) a.play(); else a.pause();
   }
   if (stageActive()) {
-    if (state.scene === 2 && !reduced.matches) starLoop.start();
+    if (state.scene === 2 && !reduced.matches) { starLoop.start(); snowLoop.start(); }
     if (depthTime !== null) depthLoop.start();
     if (state.scene === 1 && Math.abs(spin) > .01) spinLoop.start();
-  } else { starLoop.stop(); depthLoop.stop(); spinLoop.stop(); }
+  } else { starLoop.stop(); snowLoop.stop(); depthLoop.stop(); spinLoop.stop(); }
 }
 function onResize() {
   measureSlide();
