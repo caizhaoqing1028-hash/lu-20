@@ -137,10 +137,10 @@ svg { flex-shrink:0; }
 .switch-pixels { position:absolute; inset:0; width:100%; height:100%; }
 /* 圆钮：一团会呼吸的粒子光球（光丝从中心迸出，聚在球面上） */
 .switch-knob { --glow:calc(.3 + var(--slide) * .7); position:absolute; left:8px; top:8px; display:grid; place-items:center; width:60px; height:60px; border-radius:50%; translate:calc(var(--travel) * var(--slide)) 0; cursor:grab; touch-action:none;
-  --bg:calc(1 - var(--slide) * .75); background:radial-gradient(circle,rgba(250,248,255,.95) 0 14%,rgba(222,210,255,calc(var(--bg) * .55)) 42%,rgba(190,170,255,calc(var(--bg) * .3)) 70%,rgba(170,150,250,calc(var(--bg) * .2)));
-  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),0 0 calc(10px + var(--slide) * 22px) calc(var(--slide) * 5px) rgba(176,150,255,var(--glow)),0 0 calc(var(--slide) * 48px) rgba(130,90,255,calc(var(--slide) * .55)),0 4px 12px -4px rgba(50,30,120,.25);
+  background:radial-gradient(circle at 50% 46%,#2b2556 0,#1a1638 52%,#100d22 100%);
+  box-shadow:inset 0 0 0 1px rgba(200,190,255,.28),inset 0 2px 6px rgba(255,255,255,.12),0 0 calc(12px + var(--slide) * 20px) calc(2px + var(--slide) * 4px) rgba(150,130,255,var(--glow)),0 0 calc(var(--slide) * 46px) rgba(120,90,255,calc(var(--slide) * .5)),0 6px 14px -4px rgba(30,20,80,.45);
   transition:scale .45s var(--spring); }
-.knob-burst { position:absolute; left:-12%; top:-12%; width:124%; height:124%; pointer-events:none; }
+.knob-burst { position:absolute; left:-12%; top:-12%; width:124%; height:124%; pointer-events:none; filter:drop-shadow(0 0 2px rgba(220,228,255,.9)) drop-shadow(0 0 7px rgba(170,180,255,.55)); }
 .switch-knob svg { position:relative; z-index:1; width:24px; height:24px; }
 .knob-check { fill:none; stroke:#6d3fd6; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; opacity:0; transition:opacity .3s; }
 .switch.returning .switch-knob { transition:translate .6s var(--spring),scale .45s var(--spring); }

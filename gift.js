@@ -64,7 +64,7 @@ let slide = 0, drag = null, locked = false, travel = 0, opening = false, openGen
 function measureSlide() { travel = Math.max(0, track.clientWidth - knob.offsetWidth - 2 * knob.offsetLeft); slider.style.setProperty('--travel', travel + 'px'); }
 // 圆钮里的粒子光球：光丝从中心迸射出去，越到球面越慢、越密，整颗球缓缓自转
 const knobBurst = (() => {
-  const cv = document.querySelector('.knob-burst'), ctx = cv.getContext('2d'), N = 260, parts = [];
+  const cv = document.querySelector('.knob-burst'), ctx = cv.getContext('2d'), N = 340, parts = [];
   let raf = 0, size = 0, spin = 0, last = 0;
   function seed(q, fresh) {
     const u = Math.random() * 2 - 1, a = Math.random() * 6.283, k = Math.sqrt(1 - u * u);
@@ -81,28 +81,28 @@ const knobBurst = (() => {
   function frame(now) {
     raf = 0; fit();
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
-    const s = slide, boost = 1 + s * 1.6, c = size / 2, R = size * .4;
+    const s = slide, boost = 1 + s * 1.4, c = size / 2, R = size * .385;
     spin += dt * (.35 + s * .9);
     const cs = Math.cos(spin), sn = Math.sin(spin);
-    ctx.clearRect(0, 0, size, size);
+    ctx.clearRect(0, 0, size, size); ctx.globalCompositeOperation = 'lighter';
     // 中心的白热光核，微微闪烁
     const flick = .85 + .15 * Math.sin(now / 90) * Math.sin(now / 37);
-    let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.55 + s * .25));
-    g.addColorStop(0, `rgba(255,255,255,${.95 * flick})`); g.addColorStop(.35, `rgba(225,215,255,${.7 * flick})`); g.addColorStop(1, 'rgba(150,110,255,0)');
+    let g = ctx.createRadialGradient(c, c, 0, c, c, R * (.62 + s * .2));
+    g.addColorStop(0, `rgba(255,255,255,${flick})`); g.addColorStop(.25, `rgba(235,240,255,${.85 * flick})`); g.addColorStop(.6, `rgba(170,190,255,${.3 * flick})`); g.addColorStop(1, 'rgba(120,140,255,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, 6.283); ctx.fill();
     ctx.lineCap = 'round';
     for (const q of parts) {
       q.t += dt * q.v * .9 * boost;
       if (q.t >= 1) seed(q, false);
       const x = q.x * cs - q.z * sn, z = q.x * sn + q.z * cs, y = q.y;
-      const r1 = ease(q.t), r0 = ease(Math.max(0, q.t - .09 * q.w)), depth = .55 + .45 * (z + 1) / 2;
+      const r1 = ease(q.t), r0 = ease(Math.max(0, q.t - .12 * q.w)), depth = .55 + .45 * (z + 1) / 2;
       const fade = Math.min(1, q.t * 5) * (1 - Math.pow(q.t, 9)) * depth;
       if (fade < .04) continue;
       const hot = 1 - r1;
-      // 越靠近光核越白；外圈在静止时是紫色，滑动后渐渐变成淡紫白，压在深紫上也看得清
-      const m = Math.min(1, hot * 2 + s * .9);
-      ctx.strokeStyle = `rgba(${139 + 106 * m | 0},${92 + 148 * m | 0},${246 + 9 * m | 0},${fade})`;
-      ctx.lineWidth = (.7 + .9 * depth) * (size / 74);
+      // 和原版一样是冷白色的光丝，越靠近光核越白；叠加混合让交叠处更亮
+      const m = Math.min(1, hot * 1.6 + .35);
+      ctx.strokeStyle = `rgba(${190 + 65 * m | 0},${205 + 50 * m | 0},255,${fade * .9})`;
+      ctx.lineWidth = (.55 + .8 * depth) * (size / 74);
       ctx.beginPath(); ctx.moveTo(c + x * R * r0, c + y * R * r0); ctx.lineTo(c + x * R * r1, c + y * R * r1); ctx.stroke();
     }
     if (!document.hidden && cv.offsetParent && !reduced.matches) raf = requestAnimationFrame(frame);
